@@ -1,4 +1,8 @@
 """Backend supported: tensorflow.compat.v1, tensorflow, pytorch, paddle"""
+# 设置后端
+import os
+os.environ["DDE_BACKEND"] = "tensorflow"
+
 import deepxde as dde
 import numpy as np
 # Backend tensorflow.compat.v1 or tensorflow
@@ -78,3 +82,12 @@ variable = dde.callbacks.VariableValue(C, period=1000)
 losshistory, train_state = model.train(iterations=50000, callbacks=[variable])
 
 dde.saveplot(losshistory, train_state, issave=True, isplot=True)
+
+# 打印学习到的扩散系数
+print("\n\nLearned diffusion coefficient:")
+# 从变量历史记录中获取最后一个值
+if variable.value is not None and len(variable.value) > 0:
+    print(f"C = {variable.value[-1][1]:.4f}")
+else:
+    print("无法获取变量值")
+print(f"True value of C should be 1.0")

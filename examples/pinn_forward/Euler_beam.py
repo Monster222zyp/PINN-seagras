@@ -45,6 +45,7 @@ data = dde.data.PDE(
     solution=func,
     num_test=100,
 )
+
 layer_size = [1] + [20] * 3 + [1]
 activation = "tanh"
 initializer = "Glorot uniform"
