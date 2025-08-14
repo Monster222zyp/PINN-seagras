@@ -12,6 +12,9 @@
 
 解析解(当EI=1, q(x)=-1时): y(x) = -x⁴/24 + x³/6 - x²/4
 """
+# 导入配置文件，自动设置环境
+import config
+
 import deepxde as dde
 import numpy as np
 from scipy.io import loadmat
@@ -77,17 +80,34 @@ def load_experimental_data(mat_file_path, num_points=None):
     """
     data = loadmat(mat_file_path)
     
-    # 根据你的.mat文件结构调整以下字段名
-    # 假设你的.mat文件包含 'x' 和 'y' 字段
-    x = data["x"].flatten()[:, None]  # 确保是列向量
-    y = data["y"].flatten()[:, None]  # 确保是列向量
+    # 优先从 pinn_data 结构中读取 X_matrix / Y_matrix
+    if "pinn_data" in data:
+        pinn_data = data["pinn_data"][0, 0]
+        # 期望 X_matrix 形状为 (N, D)，Y_matrix 形状为 (N, 1)
+        Xm = pinn_data["X_matrix"]
+        Ym = pinn_data["Y_matrix"]
+        
+        x_raw = Xm[:, 0].astype(float).reshape(-1, 1)  # 使用第一列作为自变量
+        y = Ym.astype(float).reshape(-1, 1)
+        # 将自变量归一化到 [0, 1]，与计算域一致
+        xmin, xmax = float(x_raw.min()), float(x_raw.max())
+        x = (x_raw - xmin) / (xmax - xmin + 1e-12)
+        
+        if num_points is not None and num_points < len(x):
+            idx = np.random.choice(len(x), num_points, replace=False)
+            return x[idx], y[idx]
+        return x, y
     
-    # 如果指定了点数，随机选择一部分点
-    if num_points is not None and num_points < len(x):
-        idx = np.random.choice(len(x), num_points, replace=False)
-        return x[idx], y[idx]
+    # 回退：兼容简单的 {'x','y'} 键
+    if "x" in data and "y" in data:
+        x = data["x"].flatten()[:, None]
+        y = data["y"].flatten()[:, None]
+        if num_points is not None and num_points < len(x):
+            idx = np.random.choice(len(x), num_points, replace=False)
+            return x[idx], y[idx]
+        return x, y
     
-    return x, y
+    raise ValueError("无法在 MAT 文件中找到可用的数据字段。期望存在 'pinn_data' 结构或 'x'/'y' 字段。")
 
 
 # 定义计算域
@@ -103,8 +123,8 @@ bc4 = dde.icbc.OperatorBC(geom, lambda x, y, _: dddy(x, y), boundary_r)  # y'''(
 use_experimental_data = True  # 设置为True使用实验数据，False使用解析解
 
 if use_experimental_data:
-    # 加载实验数据（替换为你的.mat文件路径）
-    mat_file_path = "path/to/your/experimental_data.mat"  # 修改为你的实验数据文件路径
+    # 加载实验数据
+    mat_file_path = "pinn_training_data.mat"  # 您的实验数据文件
     x_exp, y_exp = load_experimental_data(mat_file_path, num_points=50)
     
     # 创建观测数据点约束
@@ -139,7 +159,11 @@ net = dde.nn.FNN(layer_size, activation, initializer)
 
 # 创建模型
 model = dde.Model(data, net)
-model.compile("adam", lr=0.001, metrics=["l2 relative error"])
+if use_experimental_data:
+    # 无解析解/测试集时不计算 l2 相对误差
+    model.compile("adam", lr=0.001)
+else:
+    model.compile("adam", lr=0.001, metrics=["l2 relative error"])
 
 # 训练模型
 losshistory, train_state = model.train(iterations=10000)
