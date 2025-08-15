@@ -1,0 +1,34 @@
+{
+  "timestamp": "20250814-224433",
+  "filters": {
+    "target_e": 100000000.0,
+    "target_h": 0.02,
+    "target_hc": null,
+    "target_angles": null
+  },
+  "discretization": {
+    "N_NODES_BEAM": 200,
+    "AREA_MODE": "local",
+    "MAX_ITER_BASELINE": 1000,
+    "TOL_BASELINE": 1e-08
+  },
+  "theta180": {
+    "enabled": true,
+    "theta_zero_deg": 180.0,
+    "theta_zero_tol_deg": 0.0001,
+    "theta_zero_scale": 0.0
+  },
+  "training": {
+    "LR_CD": 0.003,
+    "LR_RES": 0.002,
+    "WEIGHT_DECAY": 1e-06,
+    "EPOCHS_CD": 20000,
+    "EPOCHS_RES": 20000,
+    "CD_PRIOR_REG": 0.001,
+    "RES_L2_REG": 1e-08
+  },
+  "materials": {
+    "RHO_DEFAULT": 1000.0,
+    "MU_WATER": 0.001
+  }
+}

@@ -1,0 +1,2 @@
+E:\OneDrive - 西湖大学\水草实验\Paper-PINN\Code\PINN-seagras\myproject\train_force_model.py:213: DeprecationWarning: `trapz` is deprecated. Use `trapezoid` instead, or one of the numerical integration functions in `scipy.integrate`.
+  F_single = np.trapz(q, x)

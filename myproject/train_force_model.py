@@ -34,6 +34,9 @@ import math
 import random
 import argparse
 import numpy as np
+import json
+import sys
+from datetime import datetime
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
@@ -52,7 +55,7 @@ MU_WATER = 1e-3                # 动力黏度 (Pa·s)
 N_NODES_BEAM = 200             # 梁离散节点数
 AREA_MODE = "local"            # "local" 或 "max"
 MAX_ITER_BASELINE = 1000       # 基线迭代次数（>0 使用迭代模型，=0 使用简化模型）
-TOL_BASELINE = 1e-6            # 迭代收敛阈值
+TOL_BASELINE = 1e-8            # 迭代收敛阈值
 
 # 角度为 180° 的条带：认为力极小（近 0）。
 THETA180_ZERO_FORCE = True     # 是否对 theta≈180° 的条带置零/削弱
@@ -64,18 +67,18 @@ THETA_ZERO_SCALE = 0.0         # 削弱比例（0.0 表示直接置零）
 LR_CD = 3e-3                   # Cd 参数学习率
 LR_RES = 2e-3                  # 残差网络学习率
 WEIGHT_DECAY = 1e-6            # 优化器权重衰减
-EPOCHS_CD = 10000              # Cd 拟合轮数
-EPOCHS_RES = 8000              # 残差网络训练轮数
+EPOCHS_CD = 20000              # Cd 拟合轮数
+EPOCHS_RES = 20000              # 残差网络训练轮数
 
 # 先验与正则
 CD_PRIOR_CYL = 1.2             # 圆柱 Cd 的先验均值
 CD_PRIOR_SOFT = 2.0            # 软条 Cd 的先验均值
-CD_PRIOR_REG = 1e-1            # 将学到的 Cd 的均值拉向先验的正则权重
-RES_L2_REG = 1e-6              # 残差网络参数 L2 正则
+CD_PRIOR_REG = 1e-3            # 将学到的 Cd 的均值拉向先验的正则权重
+RES_L2_REG = 1e-8              # 残差网络参数 L2 正则
 # ======================================================================
 
 # 训练目标筛选（默认 None 表示不过滤）
-SELECT_E: float | None = 2e7  # 例如 2e7
+SELECT_E: float | None = 1e8  # 例如 2e7
 SELECT_H: float | None = 0.02   # 叶片高度 h (m)，例如 0.01
 
 
@@ -118,7 +121,8 @@ def compute_force_matlab_style(
     max_iter: int = 30,
     tol: float = 1e-6,
     area_mode: str = "local",
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    return_angle_components: bool = False,
+) -> tuple:
     """按照 calculate_drag_coefficient.m 的思路计算物理基线力。
 
     返回: (F_total, F_cylinder, F_soft_total)
@@ -138,6 +142,7 @@ def compute_force_matlab_style(
 
     n_samples = X.shape[0]
     F_soft_total = np.zeros(n_samples, dtype=float)
+    F_soft_cols_mat = np.zeros((n_samples, 3), dtype=float)
 
     if max_iter <= 0:
         # 简化模型（小变形）
@@ -151,7 +156,9 @@ def compute_force_matlab_style(
                 if THETA180_ZERO_FORCE and abs(theta_k_deg - THETA_ZERO_DEG) <= THETA_ZERO_TOL_DEG:
                     scale = THETA_ZERO_SCALE
                 F_single = 0.5 * rho * Cd_soft * h[i] * L[i] * abs(np.sin(theta_k)) * (U ** 2)
-                total += n_per_col[i] * (scale * abs(F_single))
+                comp = n_per_col[i] * (scale * abs(F_single))
+                F_soft_cols_mat[i, k] = comp
+                total += comp
             F_soft_total[i] = total
     else:
         # 迭代模型（欧拉梁 + 动态角度 + 分布载荷）
@@ -204,11 +211,15 @@ def compute_force_matlab_style(
                         break
                     w_prev = w_new
                 F_single = np.trapz(q, x)
-                F_soft_cols.append(n_per_col[i] * np.abs(F_single))
+                comp = n_per_col[i] * np.abs(F_single)
+                F_soft_cols.append(comp)
+                F_soft_cols_mat[i, k] = comp
             # 列力本就为正，直接求和
             F_soft_total[i] = np.sum(F_soft_cols)
 
     F_total = F_cyl + F_soft_total
+    if return_angle_components:
+        return F_total, F_cyl, F_soft_total, F_soft_cols_mat
     return F_total, F_cyl, F_soft_total
 
 
@@ -339,6 +350,86 @@ def main():
         args.target_e = SELECT_E
     if args.target_h is None and SELECT_H is not None:
         args.target_h = SELECT_H
+
+    # 结果输出目录：runs_force/<timestamp>__参数签名
+    script_dir = os.path.dirname(__file__)
+    runs_root = os.path.join(script_dir, "runs_force")
+    os.makedirs(runs_root, exist_ok=True)
+    def _fmt(v):
+        if v is None:
+            return "None"
+        if isinstance(v, float):
+            return ("%.6g" % v).replace(".", "p")
+        return str(v)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_name_parts = [
+        ts,
+        f"E-{_fmt(args.target_e)}",
+        f"h-{_fmt(args.target_h)}",
+        f"Hc-{_fmt(args.target_hc)}",
+        f"ang-{_fmt(args.target_angles)}",
+        f"AM-{AREA_MODE}",
+        f"iter-{MAX_ITER_BASELINE}",
+        f"tol-{_fmt(TOL_BASELINE)}",
+    ]
+    run_dir = os.path.join(runs_root, "__".join(run_name_parts))
+    os.makedirs(run_dir, exist_ok=True)
+    # 记录最近一次运行
+    with open(os.path.join(runs_root, "LATEST.txt"), "w", encoding="utf-8") as f:
+        f.write(os.path.basename(run_dir))
+
+    # 将 stdout/stderr 同步到文件
+    class _Tee:
+        def __init__(self, stream, logfile_path):
+            self.stream = stream
+            self.log = open(logfile_path, "w", encoding="utf-8", buffering=1)
+        def write(self, data):
+            self.stream.write(data)
+            self.log.write(data)
+        def flush(self):
+            self.stream.flush()
+            self.log.flush()
+    sys.stdout = _Tee(sys.stdout, os.path.join(run_dir, "console.log"))
+    sys.stderr = _Tee(sys.stderr, os.path.join(run_dir, "stderr.log"))
+    print(f"运行目录: {run_dir}")
+
+    # 保存本次运行的配置元信息
+    meta = {
+        "timestamp": ts,
+        "filters": {
+            "target_e": args.target_e,
+            "target_h": args.target_h,
+            "target_hc": args.target_hc,
+            "target_angles": args.target_angles,
+        },
+        "discretization": {
+            "N_NODES_BEAM": N_NODES_BEAM,
+            "AREA_MODE": AREA_MODE,
+            "MAX_ITER_BASELINE": MAX_ITER_BASELINE,
+            "TOL_BASELINE": TOL_BASELINE,
+        },
+        "theta180": {
+            "enabled": THETA180_ZERO_FORCE,
+            "theta_zero_deg": THETA_ZERO_DEG,
+            "theta_zero_tol_deg": THETA_ZERO_TOL_DEG,
+            "theta_zero_scale": THETA_ZERO_SCALE,
+        },
+        "training": {
+            "LR_CD": LR_CD,
+            "LR_RES": LR_RES,
+            "WEIGHT_DECAY": WEIGHT_DECAY,
+            "EPOCHS_CD": EPOCHS_CD,
+            "EPOCHS_RES": EPOCHS_RES,
+            "CD_PRIOR_REG": CD_PRIOR_REG,
+            "RES_L2_REG": RES_L2_REG,
+        },
+        "materials": {
+            "RHO_DEFAULT": RHO_DEFAULT,
+            "MU_WATER": MU_WATER,
+        },
+    }
+    with open(os.path.join(run_dir, "run_config.json"), "w", encoding="utf-8") as f:
+        json.dump(meta, f, ensure_ascii=False, indent=2)
 
     # 使用 MATLAB 风格的力学基线（总力/圆柱/软条）
     F_total_base, F_cyl_base, F_soft_base = compute_force_matlab_style(
@@ -546,10 +637,83 @@ def main():
         cd_c_all = torch.nn.functional.softplus(a0.cpu() + a1.cpu() / (Re_cyl_all_t + 1e-6) + a2.cpu() / ((Re_cyl_all_t + 1e-6) ** 2)).numpy()
         cd_s_all = torch.nn.functional.softplus(b0.cpu() + b1.cpu() / (Re_soft_all_t + 1e-6) + b2.cpu() / ((Re_soft_all_t + 1e-6) ** 2)).numpy()
     # 预测基线分量也与 X_shuf 对齐（cd=1 的分量，用于与学习到的 Cd(Re) 组合）
-    _, Fc1_all_pred, Fs1_all_pred = compute_force_matlab_style(
-        X_shuf, rho=RHO_DEFAULT, Cd_cyl=1.0, Cd_soft=1.0, max_iter=0, tol=TOL_BASELINE
+    _, Fc1_all_pred, Fs1_all_pred, Fs1_cols = compute_force_matlab_style(
+        X_shuf, rho=RHO_DEFAULT, Cd_cyl=1.0, Cd_soft=1.0, max_iter=0, tol=TOL_BASELINE, return_angle_components=True
     )
     y_pred = cd_c_all * Fc1_all_pred + cd_s_all * Fs1_all_pred + r_pred.squeeze(-1)
+
+    # 保存学习到的阻力系数：参数与逐样本的 Cd 值
+    out_dir = run_dir
+    # 1) 原始参数与统计
+    cd_params_out = {
+        "a0": float(a0.detach().cpu().item()),
+        "a1": float(a1.detach().cpu().item()),
+        "a2": float(a2.detach().cpu().item()),
+        "b0": float(b0.detach().cpu().item()),
+        "b1": float(b1.detach().cpu().item()),
+        "b2": float(b2.detach().cpu().item()),
+        "mean_Cd_cyl": float(np.mean(cd_c_all)),
+        "mean_Cd_soft": float(np.mean(cd_s_all)),
+    }
+    params_path = os.path.join(out_dir, "learned_cd_params.json")
+    with open(params_path, "w", encoding="utf-8") as f:
+        json.dump(cd_params_out, f, ensure_ascii=False, indent=2)
+    print(f"保存阻力系数参数: {params_path}")
+
+    # 2) 逐样本的 Cd/Re/输入/输出汇总
+    idx_arr = np.arange(len(X_shuf))
+    F_cyl_pred_arr = cd_c_all * Fc1_all_pred
+    # 三列软条的预测分解：先做基线（cd_s * Fs1_cols），再按列基线比例分摊残差
+    F_soft_pred_cols_base = cd_s_all[:, None] * Fs1_cols  # (n,3)
+    denom = Fs1_all_pred[:, None]
+    # 若该样本三列基线之和接近0，则用均分权重
+    weights = np.divide(Fs1_cols, denom + 1e-12, where=(denom + 1e-12) != 0.0)
+    near_zero_mask = np.isclose(Fs1_all_pred, 0.0, atol=1e-12)
+    if np.any(near_zero_mask):
+        weights[near_zero_mask] = 1.0 / 3.0
+    r_share_cols = r_pred.squeeze(-1)[:, None] * weights
+    F_soft_pred_cols = F_soft_pred_cols_base + r_share_cols  # (n,3)
+    F_soft_pred_arr = np.sum(F_soft_pred_cols, axis=1)
+    F_soft1_col1 = Fs1_cols[:, 0]
+    F_soft1_col2 = Fs1_cols[:, 1]
+    F_soft1_col3 = Fs1_cols[:, 2]
+    table = np.column_stack([
+        idx_arr,
+        X_shuf[:, 0],            # v
+        X_shuf[:, 1],            # Hc
+        X_shuf[:, 2],            # Dc
+        X_shuf[:, 4],            # L
+        Re_cyl_np,
+        Re_soft_np,
+        cd_c_all,
+        cd_s_all,
+        y_shuf,
+        y_pred,
+        F_cyl_pred_arr,
+        F_soft_pred_arr,
+        F_soft_pred_cols[:, 0],
+        F_soft_pred_cols[:, 1],
+        F_soft_pred_cols[:, 2],
+        Fc1_all_pred,
+        Fs1_all_pred,
+        F_soft1_col1,
+        F_soft1_col2,
+        F_soft1_col3,
+    ])
+    header = (
+        "idx,v,Hc,Dc,L,Re_cyl,Re_soft,Cd_cyl,Cd_soft,y_true,y_pred,F_cyl_pred,F_soft_pred,F_soft_pred_col1,F_soft_pred_col2,F_soft_pred_col3,Fc1(F@Cd=1),Fs1(F@Cd=1),Fs1_col1,Fs1_col2,Fs1_col3"
+    )
+    csv_path = os.path.join(out_dir, "learned_cd_values.csv")
+    with open(csv_path, "w", encoding="utf-8") as f:
+        np.savetxt(
+            f,
+            table,
+            delimiter=",",
+            header=header,
+            comments="",
+            fmt=["%d"] + ["%.6g"] * (table.shape[1] - 1),
+        )
+    print(f"保存逐样本 Cd 明细: {csv_path}")
 
     # 针对“同一叶片属性，不同速度”绘图：
     # 定义“叶片属性键”= 除速度外的所有列（1..10列）的四舍五入组合作为分组键
@@ -581,6 +745,18 @@ def main():
     import matplotlib.pyplot as plt
     matplotlib.rcParams['font.sans-serif'] = ['SimHei']
     matplotlib.rcParams['axes.unicode_minus'] = False
+    # 额外输出：Cd vs Re 的散点图
+    plt.figure(figsize=(6,4))
+    plt.scatter(Re_cyl_np, cd_c_all, s=18, label="Cd_cyl vs Re_cyl")
+    plt.scatter(Re_soft_np, cd_s_all, s=18, label="Cd_soft vs Re_soft")
+    plt.xscale('log')
+    plt.xlabel('Re')
+    plt.ylabel('Cd')
+    plt.legend()
+    out_cd_png = os.path.join(run_dir, 'cd_vs_re.png')
+    plt.tight_layout()
+    plt.savefig(out_cd_png, dpi=150)
+    print(f"保存图像: {out_cd_png}")
     group_v = X_shuf[idxs, 0]
     order_g = np.argsort(group_v)
     idxs = np.array(idxs)[order_g]
@@ -595,7 +771,7 @@ def main():
     plt.ylabel("总力 F (N)")
     plt.title("同一叶片属性下，不同来流速度的力：预测 vs 实测")
     plt.legend()
-    out_png = os.path.join(os.path.dirname(__file__), "pred_vs_true_velocity.png")
+    out_png = os.path.join(run_dir, "pred_vs_true_velocity.png")
     plt.tight_layout()
     plt.savefig(out_png, dpi=150)
     rmse = float(np.sqrt(np.mean((y_true_plot - y_pred_plot) ** 2)))
@@ -621,7 +797,7 @@ def main():
     plt.xlabel('流速 v (m/s)')
     plt.ylabel('相对误差')
     plt.title('按速度的相对误差分布')
-    out_err = os.path.join(os.path.dirname(__file__), 'error_vs_velocity.png')
+    out_err = os.path.join(run_dir, 'error_vs_velocity.png')
     plt.tight_layout()
     plt.savefig(out_err, dpi=150)
     print(f"保存图像: {out_err}")
