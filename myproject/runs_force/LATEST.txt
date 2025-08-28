@@ -1,1 +1,1 @@
-20250814-224433__E-1e+08__h-0p02__Hc-None__ang-None__AM-local__iter-1000__tol-1e-08
+20250821-143207__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-1000__tol-1e-08

@@ -41,6 +41,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 from scipy.io import loadmat
+from typing import Optional
 
 # 环境设置：使用与项目一致的后端配置
 import config  # noqa: F401  # 设置 DDE_BACKEND 和 sys.path
@@ -53,7 +54,7 @@ MU_WATER = 1e-3                # 动力黏度 (Pa·s)
 
 # 欧拉梁迭代/离散
 N_NODES_BEAM = 200             # 梁离散节点数
-AREA_MODE = "local"            # "local" 或 "max"
+AREA_MODE = "max"              # "local" 或 "max"
 MAX_ITER_BASELINE = 1000       # 基线迭代次数（>0 使用迭代模型，=0 使用简化模型）
 TOL_BASELINE = 1e-8            # 迭代收敛阈值
 
@@ -73,13 +74,15 @@ EPOCHS_RES = 20000              # 残差网络训练轮数
 # 先验与正则
 CD_PRIOR_CYL = 1.2             # 圆柱 Cd 的先验均值
 CD_PRIOR_SOFT = 2.0            # 软条 Cd 的先验均值
-CD_PRIOR_REG = 1e-3            # 将学到的 Cd 的均值拉向先验的正则权重
+CD_PRIOR_REG = 1e-2            # 将学到的 Cd 的均值拉向先验的正则权重（全局）
+CD_PRIOR_REG_CYL = 1e-2        # 圆柱 Cd 的先验正则（均值→CD_PRIOR_CYL）
+CD_PRIOR_REG_SOFT = 1e-2       # 软条 phi(Re) 的先验正则（均值→1，对应 Cd_soft≈2）
 RES_L2_REG = 1e-8              # 残差网络参数 L2 正则
 # ======================================================================
 
 # 训练目标筛选（默认 None 表示不过滤）
-SELECT_E: float | None = 1e8  # 例如 2e7
-SELECT_H: float | None = 0.02   # 叶片高度 h (m)，例如 0.01
+SELECT_E: Optional[float] = 300000  # 例如 2e7
+SELECT_H: Optional[float] = 0.01   # 叶片高度 h (m)，例如 0.01
 
 
 def load_dataset(mat_path: str):
@@ -97,7 +100,7 @@ def load_dataset(mat_path: str):
 
 
 def finite_difference_matrix(n: int, dx: float) -> np.ndarray:
-    """严格固定端/自由端边界的四阶梁算子离散矩阵，参考 calculate_drag_coefficient.m。"""
+    """严格固定端/自由端边界的四阶梁算子离散矩阵，按 MATLAB 版本缩放 A/dx^4。"""
     A = np.zeros((n, n), dtype=float)
     # 固定端: w(0)=0
     A[0, 0] = 1.0
@@ -155,7 +158,9 @@ def compute_force_matlab_style(
                 scale = 1.0
                 if THETA180_ZERO_FORCE and abs(theta_k_deg - THETA_ZERO_DEG) <= THETA_ZERO_TOL_DEG:
                     scale = THETA_ZERO_SCALE
-                F_single = 0.5 * rho * Cd_soft * h[i] * L[i] * abs(np.sin(theta_k)) * (U ** 2)
+                # MATLAB 简化模型：F_soft = 0.5*rho*Cd_soft*h*L*|sin(theta)|*U^2
+                ang_factor = np.abs(np.sin(theta_k))
+                F_single = 0.5 * rho * Cd_soft * h[i] * L[i] * ang_factor * (U ** 2)
                 comp = n_per_col[i] * (scale * abs(F_single))
                 F_soft_cols_mat[i, k] = comp
                 total += comp
@@ -185,21 +190,19 @@ def compute_force_matlab_style(
                         total_angle_rad = theta0 - slope_rad
                     else:
                         total_angle_rad = theta0 + slope_rad
-                    # 法向速度与分布载荷（力按阻力定义为正的标量）
+                    # MATLAB 迭代模型：q = sign(U_normal) * [0.5*rho*Cd_soft*sin(max(total_angle))*h*|U_normal|^2]
                     U_normal = U * np.sin(total_angle_rad)
                     if area_mode == "max":
-                        # 使用全梁最大角的绝对正弦作为迎流面积因子
-                        ang_factor = np.abs(np.sin(np.max(total_angle_rad)))
+                        ang_scalar = np.sin(np.max(total_angle_rad))
                     else:
-                        # 局部迎流面积：按每点角度的绝对正弦，始终为正
-                        ang_factor = np.abs(np.sin(total_angle_rad))
-                    q_mag = 0.5 * rho * Cd_soft * ang_factor * h_i * (np.abs(U_normal) ** 2)
+                        ang_scalar = np.sin(total_angle_rad)
+                    q_magnitude = 0.5 * rho * Cd_soft * ang_scalar * h_i * (np.abs(U_normal) ** 2)
+                    direction = np.sign(U_normal)
+                    q = direction * q_magnitude
                     # 若该列初始角度接近 180°，将载荷削弱/置零
                     if THETA180_ZERO_FORCE and abs(theta0_deg - THETA_ZERO_DEG) <= THETA_ZERO_TOL_DEG:
-                        q_mag = THETA_ZERO_SCALE * q_mag
-                    # q 为标量正载荷（不携带方向），用于积分得到正的力值
-                    q = q_mag
-                    # 位移解
+                        q = THETA_ZERO_SCALE * q
+                    # 位移解：A 已含 1/dx^4 缩放 => A·w = q/EI
                     w_new = np.linalg.solve(A, q / (EI + 1e-12))
                     # 固定端校正
                     w_new[0] = 0.0
@@ -361,11 +364,39 @@ def main():
         if isinstance(v, float):
             return ("%.6g" % v).replace(".", "p")
         return str(v)
+    # 为了让文件夹名包含实际叶片高度h（而非仅筛选参数），先根据筛选条件在原始X上计算分组的唯一h
+    def _build_mask_for_naming(X_src: np.ndarray) -> np.ndarray:
+        mask = np.ones(len(X_src), dtype=bool)
+        if args.target_hc is not None:
+            mask &= np.isclose(X_src[:, 1], args.target_hc, atol=args.atol)
+        if args.target_e is not None:
+            mask &= np.isclose(X_src[:, 7], args.target_e, rtol=0, atol=max(args.atol, 1.0))
+        if args.target_h is not None:
+            mask &= np.isclose(X_src[:, 6], args.target_h, atol=args.atol)
+        if args.target_angles is not None:
+            try:
+                tgt = [float(s) for s in args.target_angles.split(",")]
+                if len(tgt) == 3:
+                    tgt_sorted = np.sort(np.array(tgt))
+                    angs_sorted = np.sort(X_src[:, 8:11], axis=1)
+                    mask &= np.all(np.isclose(angs_sorted, tgt_sorted[None, :], atol=args.atol), axis=1)
+            except Exception:
+                pass
+        return mask
+    naming_mask = _build_mask_for_naming(X)
+    if np.any(naming_mask):
+        h_vals = np.unique(np.round(X[naming_mask, 6], 6))
+    else:
+        h_vals = np.unique(np.round(X[:, 6], 6))
+    if len(h_vals) == 1:
+        h_label = f"h-{_fmt(float(h_vals[0]))}"
+    else:
+        h_label = "h-multi"
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_name_parts = [
         ts,
         f"E-{_fmt(args.target_e)}",
-        f"h-{_fmt(args.target_h)}",
+        h_label,
         f"Hc-{_fmt(args.target_hc)}",
         f"ang-{_fmt(args.target_angles)}",
         f"AM-{AREA_MODE}",
@@ -435,8 +466,8 @@ def main():
     F_total_base, F_cyl_base, F_soft_base = compute_force_matlab_style(
         X,
         rho=RHO_DEFAULT,
-        Cd_cyl=1.0,
-        Cd_soft=1.0,
+        Cd_cyl=1.2,
+        Cd_soft=2.0,
         max_iter=MAX_ITER_BASELINE,
         tol=TOL_BASELINE,
         area_mode=AREA_MODE,
@@ -502,9 +533,15 @@ def main():
     Xte_std = (Xte - mean_x) / std_x
 
     # 基于基线力的初始残差（cd=1）用于残差标准化
-    # 为保证与（可能筛选后的）X_shuf 对齐，这里用当前 X_shuf 重新计算 cd=1 的基线分量
+    # 与训练/预测一致：使用迭代欧拉梁基线（Cd=1）
     _, Fc1_all, Fs1_all = compute_force_matlab_style(
-        X_shuf, rho=RHO_DEFAULT, Cd_cyl=1.0, Cd_soft=1.0, max_iter=0, tol=TOL_BASELINE
+        X_shuf,
+        rho=RHO_DEFAULT,
+        Cd_cyl=1.0,
+        Cd_soft=1.0,
+        max_iter=MAX_ITER_BASELINE,
+        tol=TOL_BASELINE,
+        area_mode=AREA_MODE,
     )
     y_all = y_shuf
     r0_all = (y_all - (Fc1_all + Fs1_all)).reshape(-1, 1)
@@ -535,27 +572,36 @@ def main():
     Fc1_val = torch.tensor(Fc1_all[n_train:n_train + n_val], dtype=torch.float32).to(device)
     Fs1_val = torch.tensor(Fs1_all[n_train:n_train + n_val], dtype=torch.float32).to(device)
 
-    # 计算雷诺数（假设水，mu≈1e-3 Pa·s）
+    # 计算雷诺数与柔度指标 Ca（Cauchy 数，随 E 降低/速度增大而增大）
     mu = MU_WATER
     rho = RHO_DEFAULT
     v_all = torch.tensor(X_shuf[:, 0], dtype=torch.float32, device=device)
     Dc_all = torch.tensor(X_shuf[:, 2], dtype=torch.float32, device=device)
     L_all = torch.tensor(X_shuf[:, 4], dtype=torch.float32, device=device)
+    t_all = torch.tensor(X_shuf[:, 5], dtype=torch.float32, device=device)
+    h_all = torch.tensor(X_shuf[:, 6], dtype=torch.float32, device=device)
+    E_all = torch.tensor(X_shuf[:, 7], dtype=torch.float32, device=device)
     Re_cyl_all = rho * v_all * Dc_all / mu
     Re_soft_all = rho * v_all * L_all / mu
+    I_all = h_all * (t_all ** 3) / 12.0
+    EI_all = E_all * I_all + 1e-12
+    Ca_all = rho * (v_all ** 2) * (L_all ** 3) / EI_all
     Re_cyl_tr = Re_cyl_all[:n_train]
     Re_soft_tr = Re_soft_all[:n_train]
     Re_cyl_val = Re_cyl_all[n_train:n_train + n_val]
     Re_soft_val = Re_soft_all[n_train:n_train + n_val]
+    Ca_tr = Ca_all[:n_train]
+    Ca_val = Ca_all[n_train:n_train + n_val]
 
     # 阶段1：仅拟合 Cd(Re)，冻结残差（残差置零）
     a0 = nn.Parameter(torch.tensor(0.1, dtype=torch.float32, device=device))
     a1 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))
     a2 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))
-    b0 = nn.Parameter(torch.tensor(0.2, dtype=torch.float32, device=device))
-    b1 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))
-    b2 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))
-    cd_params = [a0, a1, a2, b0, b1, b2]
+    b0 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))  # phi(Re) 偏置
+    b1 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))  # 1/Re
+    b2 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))  # 1/Re^2
+    m0 = nn.Parameter(torch.tensor(0.1, dtype=torch.float32, device=device))  # Ca 衰减强度（softplus>=0）
+    cd_params = [a0, a1, a2, b0, b1, b2, m0]
     opt_cd = torch.optim.Adam(cd_params, lr=LR_CD)
     best_val_cd = float('inf')
     best_cd = None
@@ -563,19 +609,24 @@ def main():
     for ep in range(1, epochs_cd + 1):
         eps = 1e-6
         cd_cyl_tr = torch.nn.functional.softplus(a0 + a1 / (Re_cyl_tr + eps) + a2 / ((Re_cyl_tr + eps) ** 2))
-        cd_soft_tr = torch.nn.functional.softplus(b0 + b1 / (Re_soft_tr + eps) + b2 / ((Re_soft_tr + eps) ** 2))
+        phi_tr = torch.nn.functional.softplus(b0 + b1 / (Re_soft_tr + eps) + b2 / ((Re_soft_tr + eps) ** 2))
+        m_tr = torch.nn.functional.softplus(m0)
+        cd_soft_tr = 2.0 * phi_tr * torch.exp(-m_tr * torch.log1p(Ca_tr))
         y_pred_tr = cd_cyl_tr * Fc1_tr + cd_soft_tr * Fs1_tr
         loss_cd = loss_fn(y_pred_tr, ytr_t)
-        # 极弱先验：把均值拉向物理区间
+        # 先验：Cd_cyl 靠近物理区间；phi(Re) 的均值靠近 1（对应 Cd_soft≈2）
         mean_cd_c = cd_cyl_tr.mean()
+        mean_phi = phi_tr.mean()
         mean_cd_s = cd_soft_tr.mean()
-        loss_cd = loss_cd + CD_PRIOR_REG * (mean_cd_c - CD_PRIOR_CYL) ** 2 + CD_PRIOR_REG * (mean_cd_s - CD_PRIOR_SOFT) ** 2
+        loss_cd = loss_cd + CD_PRIOR_REG_CYL * (mean_cd_c - CD_PRIOR_CYL) ** 2 + CD_PRIOR_REG_SOFT * (mean_phi - 1.0) ** 2
         opt_cd.zero_grad()
         loss_cd.backward()
         opt_cd.step()
         with torch.no_grad():
             cd_cyl_val = torch.nn.functional.softplus(a0 + a1 / (Re_cyl_val + eps) + a2 / ((Re_cyl_val + eps) ** 2))
-            cd_soft_val = torch.nn.functional.softplus(b0 + b1 / (Re_soft_val + eps) + b2 / ((Re_soft_val + eps) ** 2))
+            phi_val = torch.nn.functional.softplus(b0 + b1 / (Re_soft_val + eps) + b2 / ((Re_soft_val + eps) ** 2))
+            m_val = torch.nn.functional.softplus(m0)
+            cd_soft_val = 2.0 * phi_val * torch.exp(-m_val * torch.log1p(Ca_val))
             y_pred_val = cd_cyl_val * Fc1_val + cd_soft_val * Fs1_val
             val_cd = loss_fn(y_pred_val, yval_t).item()
         if val_cd < best_val_cd - 1e-9:
@@ -597,7 +648,9 @@ def main():
         res_tr_std = model(Xtr_t)
         res_tr = res_tr_std * torch.tensor(std_r.squeeze(), dtype=torch.float32, device=device) + torch.tensor(mean_r.squeeze(), dtype=torch.float32, device=device)
         cd_cyl_tr = torch.nn.functional.softplus(a0 + a1 / (Re_cyl_tr + 1e-6) + a2 / ((Re_cyl_tr + 1e-6) ** 2))
-        cd_soft_tr = torch.nn.functional.softplus(b0 + b1 / (Re_soft_tr + 1e-6) + b2 / ((Re_soft_tr + 1e-6) ** 2))
+        phi_tr = torch.nn.functional.softplus(b0 + b1 / (Re_soft_tr + 1e-6) + b2 / ((Re_soft_tr + 1e-6) ** 2))
+        m_tr = torch.nn.functional.softplus(m0)
+        cd_soft_tr = 2.0 * phi_tr * torch.exp(-m_tr * torch.log1p(Ca_tr))
         y_pred_tr = cd_cyl_tr * Fc1_tr + cd_soft_tr * Fs1_tr + res_tr
         loss = loss_fn(y_pred_tr, ytr_t) + RES_L2_REG * sum((p**2).sum() for p in model.parameters())
         opt_res.zero_grad()
@@ -607,7 +660,9 @@ def main():
             res_val_std = model(Xval_t)
             res_val = res_val_std * torch.tensor(std_r.squeeze(), dtype=torch.float32, device=device) + torch.tensor(mean_r.squeeze(), dtype=torch.float32, device=device)
             cd_cyl_val = torch.nn.functional.softplus(a0 + a1 / (Re_cyl_val + 1e-6) + a2 / ((Re_cyl_val + 1e-6) ** 2))
-            cd_soft_val = torch.nn.functional.softplus(b0 + b1 / (Re_soft_val + 1e-6) + b2 / ((Re_soft_val + 1e-6) ** 2))
+            phi_val = torch.nn.functional.softplus(b0 + b1 / (Re_soft_val + 1e-6) + b2 / ((Re_soft_val + 1e-6) ** 2))
+            m_val = torch.nn.functional.softplus(m0)
+            cd_soft_val = 2.0 * phi_val * torch.exp(-m_val * torch.log1p(Ca_val))
             y_pred_val = cd_cyl_val * Fc1_val + cd_soft_val * Fs1_val + res_val
             val_loss = loss_fn(y_pred_val, yval_t).item()
         scheduler.step(val_loss)
@@ -634,11 +689,30 @@ def main():
     with torch.no_grad():
         Re_cyl_all_t = torch.tensor(Re_cyl_np, dtype=torch.float32)
         Re_soft_all_t = torch.tensor(Re_soft_np, dtype=torch.float32)
-        cd_c_all = torch.nn.functional.softplus(a0.cpu() + a1.cpu() / (Re_cyl_all_t + 1e-6) + a2.cpu() / ((Re_cyl_all_t + 1e-6) ** 2)).numpy()
-        cd_s_all = torch.nn.functional.softplus(b0.cpu() + b1.cpu() / (Re_soft_all_t + 1e-6) + b2.cpu() / ((Re_soft_all_t + 1e-6) ** 2)).numpy()
+        # 计算 Ca（numpy → torch）
+        t_np = X_shuf[:, 5]
+        h_np = X_shuf[:, 6]
+        E_np = X_shuf[:, 7]
+        I_np = h_np * (t_np ** 3) / 12.0
+        EI_np = E_np * I_np + 1e-12
+        Ca_np = rho * (v_np ** 2) * (X_shuf[:, 4] ** 3) / EI_np
+        Ca_all_t = torch.tensor(Ca_np, dtype=torch.float32)
+        cd_c_all = torch.nn.functional.softplus(
+            a0.cpu() + a1.cpu() / (Re_cyl_all_t + 1e-6) + a2.cpu() / ((Re_cyl_all_t + 1e-6) ** 2)
+        ).numpy()
+        phi_all = torch.nn.functional.softplus(b0.cpu() + b1.cpu() / (Re_soft_all_t + 1e-6) + b2.cpu() / ((Re_soft_all_t + 1e-6) ** 2))
+        m_all = torch.nn.functional.softplus(m0.cpu())
+        cd_s_all = (2.0 * phi_all * torch.exp(-m_all * torch.log1p(Ca_all_t))).numpy()
     # 预测基线分量也与 X_shuf 对齐（cd=1 的分量，用于与学习到的 Cd(Re) 组合）
     _, Fc1_all_pred, Fs1_all_pred, Fs1_cols = compute_force_matlab_style(
-        X_shuf, rho=RHO_DEFAULT, Cd_cyl=1.0, Cd_soft=1.0, max_iter=0, tol=TOL_BASELINE, return_angle_components=True
+        X_shuf,
+        rho=RHO_DEFAULT,
+        Cd_cyl=1.0,
+        Cd_soft=1.0,
+        max_iter=MAX_ITER_BASELINE,  # 预测阶段使用迭代欧拉梁基线
+        tol=TOL_BASELINE,
+        area_mode=AREA_MODE,
+        return_angle_components=True,
     )
     y_pred = cd_c_all * Fc1_all_pred + cd_s_all * Fs1_all_pred + r_pred.squeeze(-1)
 
@@ -652,6 +726,7 @@ def main():
         "b0": float(b0.detach().cpu().item()),
         "b1": float(b1.detach().cpu().item()),
         "b2": float(b2.detach().cpu().item()),
+        "m0_Ca_decay": float(m0.detach().cpu().item()),
         "mean_Cd_cyl": float(np.mean(cd_c_all)),
         "mean_Cd_soft": float(np.mean(cd_s_all)),
     }
@@ -685,6 +760,7 @@ def main():
         X_shuf[:, 4],            # L
         Re_cyl_np,
         Re_soft_np,
+        Ca_np,
         cd_c_all,
         cd_s_all,
         y_shuf,
@@ -701,7 +777,7 @@ def main():
         F_soft1_col3,
     ])
     header = (
-        "idx,v,Hc,Dc,L,Re_cyl,Re_soft,Cd_cyl,Cd_soft,y_true,y_pred,F_cyl_pred,F_soft_pred,F_soft_pred_col1,F_soft_pred_col2,F_soft_pred_col3,Fc1(F@Cd=1),Fs1(F@Cd=1),Fs1_col1,Fs1_col2,Fs1_col3"
+        "idx,v,Hc,Dc,L,Re_cyl,Re_soft,Ca,Cd_cyl,Cd_soft,y_true,y_pred,F_cyl_pred,F_soft_pred,F_soft_pred_col1,F_soft_pred_col2,F_soft_pred_col3,Fc1(F@Cd=1),Fs1(F@Cd=1),Fs1_col1,Fs1_col2,Fs1_col3"
     )
     csv_path = os.path.join(out_dir, "learned_cd_values.csv")
     with open(csv_path, "w", encoding="utf-8") as f:
