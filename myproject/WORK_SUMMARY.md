@@ -44,20 +44,24 @@
 - **圆柱阻力**: `F_cyl = 0.5 * rho * Cd_cyl * Dc * Hc * v^2`。
 - **柔性条带阻力**:
   - 简化模型：`F_soft ~ 0.5 * rho * Cd_soft * h * L * |sin(theta)| * v^2 * N_blades`，对三个角度分别计算后求和。
-  - 迭代模型：基于欧拉梁离散（`N_NODES_BEAM` 节点），按局部角度与法向速度计算分布载荷 `q(x)`，解四阶梁算子，积分得到列力并求和。
-  - 对接近 180° 的角度可按开关与容差削弱/置零（`THETA180_ZERO_FORCE` 及相关参数）。
-- **`Cd(Re)` 形式**: `Cd = softplus(b0 + b1/Re + b2/Re^2)`（圆柱与柔性条带各一套参数）。
+  - 迭代模型：基于欧拉梁离散（`N_NODES_BEAM` 节点），按局部角度与法向速度计算分布载荷 `q(x)`，解四阶梁算子，积分得到列力并求和。迭代中对初始角接近 `180°` 的列按开关削弱：`THETA180_ZERO_FORCE=True/False`、容差 `THETA_ZERO_TOL_DEG`、比例 `THETA_ZERO_SCALE`。
+- **`Cd(Re)` 形式与柔性条带模型**:
+  - 圆柱：`Cd_cyl(Re_cyl) = softplus(a0 + a1/Re_cyl + a2/Re_cyl^2)`。
+  - 柔性条带：先学习 `phi(Re_soft) = softplus(b0 + b1/Re_soft + b2/Re_soft^2)`，再结合 Cauchy 数 `Ca = rho*v^2*L^3 / (E*h*t^3/12)` 做衰减：
+    `Cd_soft(Re_soft, Ca) = 2 * phi(Re_soft) * exp(- softplus(m0) * log1p(Ca))`。
+  - 训练阶段一仅拟合上述参数（`a0..a2, b0..b2, m0`），用 `Fc@Cd=1` 与 `Fs@Cd=1` 组合重建总力。
 - **先验与正则**:
-  - `CD_PRIOR_CYL=1.2`、`CD_PRIOR_SOFT=2.0`：通过极弱二次项把 `Cd` 的均值拉向合理物理区间。
+  - 圆柱 `Cd_cyl` 的均值使用弱先验拉回 `CD_PRIOR_CYL=1.2`（权重 `CD_PRIOR_REG_CYL`）。
+  - 柔性条带通过让 `phi(Re)` 的均值靠近 1（对应 `Cd_soft≈2`）来施加弱先验（权重 `CD_PRIOR_REG_SOFT`）。
   - 残差网络使用 `L2` 正则（`RES_L2_REG`）。
 
 ## 训练流程（`train_force_model.py`）
 1. 读取 `pinn_training_data.mat`，获取 `X`、`y`，可选按 `E`、`h`、`Hc`、迎流角集合筛选子集（命令行参数或顶部默认过滤量）。
 2. 计算 MATLAB 风格基线力 `F_total_base`（可选简化/迭代），以及简化先验 `Fc`、`F_blade_base` 与角度三角函数。
-3. 构造特征矩阵并打乱，按 8/1/1 划分训练/验证/测试；对特征与“`cd=1` 基线残差”做标准化以稳定训练。
+3. 构造特征矩阵并打乱，按 8/1/1 划分训练/验证/测试；对特征做标准化，并用“`cd=1` 的基线残差 r0 = y - (Fc@1 + Fs@1)”做残差标准化以稳定训练。
 4. 阶段一（`Cd` 拟合）：冻结残差网络，仅学习 `a0..a2`、`b0..b2`，最小化 `MSE(y_pred, y_true)` 并加上先验正则；保留验证集最优参数。
 5. 阶段二（残差网络）：固定 `Cd`，用 MLP（`Tanh` 激活，默认 4 层×128）回归残差，目标仍为总力；使用 `ReduceLROnPlateau` 与 `L2` 正则，保留验证最优。
-6. 推理：得到 `Cd_cyl(Re)`、`Cd_soft(Re)` 与残差，组合成最终预测；分解总力为圆柱/柔性条带贡献，并按三列角度输出分量。
+6. 推理：得到 `Cd_cyl(Re_cyl)`、`Cd_soft(Re_soft, Ca)` 与残差，组合成最终预测；分解总力为圆柱/柔性条带贡献，并按三列角度输出分量。
 
 ## 产物与可视化
 - 训练与推理产物默认写入 `runs_force/<timestamp>__参数签名/`：
@@ -69,6 +73,7 @@
   - `cd_vs_re.png`: `Cd` 与 `Re` 的散点关系图（对数横轴）。
   - `error_vs_velocity.png`: 相对误差随速度分布图。
 - 目录中亦包含若干示例输出（便于快速查阅）。
+- 额外说明：Python 侧不输出“等效阻力系数 C_total”。如果需要整体等效系数，可按 MATLAB 中的定义计算：`C_total = F_total / (0.5 * rho * v^2 * A_ref)`，其中 `A_ref = Dc*Hc + N_total*h*L`。MATLAB 的 `calculate_drag_coefficient.m` 会返回该 `C_total`，而 Python 训练脚本导出的是分量级的 `Cd_cyl`、`Cd_soft` 以及对应的力分解。
 
 ## 运行方式
 - 命令行（默认全量训练）：
@@ -86,6 +91,8 @@ python myproject/train_force_model.py \
   --target-hc 0.1 \
   --target-angles 60,180,300
 ```
+
+- 其他关键开关在脚本顶部给出：`AREA_MODE`（`"local"|"max"`，控制角度取值策略）、`MAX_ITER_BASELINE`（>0 使用迭代欧拉梁，=0 使用简化）、`TOL_BASELINE`、以及角度为 180° 时的削弱开关与参数。
 
 - 环境与路径已由 `config.py`/`run_in_ide.py` 处理；如在 IDE 中运行，可先执行 `run_in_ide.py` 或直接运行 `train_force_model.py`。
 
