@@ -1,0 +1,4 @@
+c:\Users\admin\deepxde\myproject\train_force_model.py:216: DeprecationWarning: `trapz` is deprecated. Use `trapezoid` instead, or one of the numerical integration functions in `scipy.integrate`.
+  F_single = np.trapz(q, x)
+c:\Users\admin\deepxde\myproject\train_force_model.py:216: DeprecationWarning: `trapz` is deprecated. Use `trapezoid` instead, or one of the numerical integration functions in `scipy.integrate`.
+  F_single = np.trapz(q, x)

@@ -1,0 +1,13 @@
+运行目录: C:\Users\admin\deepxde\myproject\runs_force\20260413-181751__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-200__tol-1e-06
+已按条件筛选：Hc=None, E=300000, h=0.01, angles=None，样本数 114 -> 19
+[CD] Epoch 1/200 - train=2.070517e-01  val=5.033870e-01  mean(Cd_cyl)~0.744  mean(Cd_soft)~0.067
+[CD] Epoch 200/200 - train=7.783986e-02  val=1.359271e-01  mean(Cd_cyl)~1.079  mean(Cd_soft)~0.355
+[RES] Epoch 1/200 - train=6.683494e-02  val=8.172013e-02  lr=2.00e-03
+[RES] Epoch 200/200 - train=8.742384e-03  val=5.512235e-04  lr=1.00e-03
+保存阻力系数参数: C:\Users\admin\deepxde\myproject\runs_force\20260413-181751__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-200__tol-1e-06\learned_cd_params.json
+保存逐样本 Cd 明细: C:\Users\admin\deepxde\myproject\runs_force\20260413-181751__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-200__tol-1e-06\learned_cd_values.csv
+保存图像: C:\Users\admin\deepxde\myproject\runs_force\20260413-181751__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-200__tol-1e-06\cd_vs_re.png
+保存图像: C:\Users\admin\deepxde\myproject\runs_force\20260413-181751__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-200__tol-1e-06\pred_vs_true_velocity.png  |  该组 RMSE=0.0991, MAPE=1461199218.86%
+学习到的 Cd_cyl(mean)=1.0809, Cd_soft(mean)=0.3685
+当前作图组 Hc=[0.23], h=[0.01], E≈[300000.0]
+保存图像: C:\Users\admin\deepxde\myproject\runs_force\20260413-181751__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-200__tol-1e-06\error_vs_velocity.png

@@ -1,0 +1,211 @@
+运行目录: c:\Users\admin\deepxde\myproject\runs_force\20260413-183845__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-1000__tol-1e-08
+已按条件筛选：Hc=None, E=300000, h=0.01, angles=None，样本数 114 -> 19
+[CD] Epoch 1/20000 - train=2.070516e-01  val=5.033870e-01  mean(Cd_cyl)~0.744  mean(Cd_soft)~0.067
+[CD] Epoch 200/20000 - train=7.783968e-02  val=1.359271e-01  mean(Cd_cyl)~1.079  mean(Cd_soft)~0.355
+[CD] Epoch 400/20000 - train=2.387805e-02  val=1.183654e-03  mean(Cd_cyl)~1.241  mean(Cd_soft)~0.859
+[CD] Epoch 600/20000 - train=2.320723e-02  val=2.248059e-03  mean(Cd_cyl)~1.257  mean(Cd_soft)~0.846
+[CD] Epoch 800/20000 - train=2.289378e-02  val=2.595288e-03  mean(Cd_cyl)~1.269  mean(Cd_soft)~0.825
+[CD] Epoch 1000/20000 - train=2.275909e-02  val=2.851831e-03  mean(Cd_cyl)~1.279  mean(Cd_soft)~0.810
+[CD] Epoch 1200/20000 - train=2.270678e-02  val=3.025676e-03  mean(Cd_cyl)~1.286  mean(Cd_soft)~0.799
+[CD] Epoch 1400/20000 - train=2.268840e-02  val=3.134144e-03  mean(Cd_cyl)~1.291  mean(Cd_soft)~0.791
+[CD] Epoch 1600/20000 - train=2.268246e-02  val=3.195843e-03  mean(Cd_cyl)~1.295  mean(Cd_soft)~0.786
+[CD] Epoch 1800/20000 - train=2.268052e-02  val=3.227053e-03  mean(Cd_cyl)~1.298  mean(Cd_soft)~0.783
+[CD] Epoch 2000/20000 - train=2.267970e-02  val=3.240327e-03  mean(Cd_cyl)~1.300  mean(Cd_soft)~0.781
+[CD] Epoch 2200/20000 - train=2.267916e-02  val=3.244182e-03  mean(Cd_cyl)~1.301  mean(Cd_soft)~0.779
+[CD] Epoch 2400/20000 - train=2.267871e-02  val=3.243843e-03  mean(Cd_cyl)~1.303  mean(Cd_soft)~0.778
+[CD] Epoch 2600/20000 - train=2.267829e-02  val=3.241874e-03  mean(Cd_cyl)~1.304  mean(Cd_soft)~0.777
+[CD] Epoch 2800/20000 - train=2.267790e-02  val=3.239702e-03  mean(Cd_cyl)~1.305  mean(Cd_soft)~0.777
+[CD] Epoch 3000/20000 - train=2.267749e-02  val=3.237735e-03  mean(Cd_cyl)~1.305  mean(Cd_soft)~0.776
+[CD] Epoch 3200/20000 - train=2.267709e-02  val=3.236080e-03  mean(Cd_cyl)~1.306  mean(Cd_soft)~0.775
+[CD] Epoch 3400/20000 - train=2.267667e-02  val=3.234751e-03  mean(Cd_cyl)~1.306  mean(Cd_soft)~0.775
+[CD] Epoch 3600/20000 - train=2.267623e-02  val=3.233748e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 3800/20000 - train=2.267577e-02  val=3.232934e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 4000/20000 - train=2.267529e-02  val=3.232351e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 4200/20000 - train=2.267479e-02  val=3.231823e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 4400/20000 - train=2.267427e-02  val=3.231402e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 4600/20000 - train=2.267372e-02  val=3.230996e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 4800/20000 - train=2.267316e-02  val=3.230644e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 5000/20000 - train=2.267258e-02  val=3.230223e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 5200/20000 - train=2.267198e-02  val=3.229871e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 5400/20000 - train=2.267137e-02  val=3.229465e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 5600/20000 - train=2.267076e-02  val=3.229099e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 5800/20000 - train=2.267012e-02  val=3.228693e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 6000/20000 - train=2.266947e-02  val=3.228286e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 6200/20000 - train=2.266883e-02  val=3.227866e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 6400/20000 - train=2.266817e-02  val=3.227446e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 6600/20000 - train=2.266750e-02  val=3.227013e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 6800/20000 - train=2.266684e-02  val=3.226593e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 7000/20000 - train=2.266616e-02  val=3.226160e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 7200/20000 - train=2.266549e-02  val=3.225726e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 7400/20000 - train=2.266481e-02  val=3.225280e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 7600/20000 - train=2.266413e-02  val=3.224833e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 7800/20000 - train=2.266344e-02  val=3.224399e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.775
+[CD] Epoch 8000/20000 - train=2.266277e-02  val=3.223939e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 8200/20000 - train=2.266208e-02  val=3.223533e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 8400/20000 - train=2.266140e-02  val=3.223059e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 8600/20000 - train=2.266071e-02  val=3.222626e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 8800/20000 - train=2.266002e-02  val=3.222180e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 9000/20000 - train=2.265933e-02  val=3.221747e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 9200/20000 - train=2.265864e-02  val=3.221273e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 9400/20000 - train=2.265796e-02  val=3.220826e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 9600/20000 - train=2.265726e-02  val=3.220420e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 9800/20000 - train=2.265657e-02  val=3.219933e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 10000/20000 - train=2.265588e-02  val=3.219527e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 10200/20000 - train=2.265520e-02  val=3.219068e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 10400/20000 - train=2.265450e-02  val=3.218608e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 10600/20000 - train=2.265381e-02  val=3.218134e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 10800/20000 - train=2.265312e-02  val=3.217715e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 11000/20000 - train=2.265244e-02  val=3.217228e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 11200/20000 - train=2.265174e-02  val=3.216795e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 11400/20000 - train=2.265106e-02  val=3.216336e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 11600/20000 - train=2.265036e-02  val=3.215876e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 11800/20000 - train=2.264967e-02  val=3.215443e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 12000/20000 - train=2.264898e-02  val=3.214997e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 12200/20000 - train=2.264829e-02  val=3.214538e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.776
+[CD] Epoch 12400/20000 - train=2.264760e-02  val=3.214105e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.777
+[CD] Epoch 12600/20000 - train=2.264691e-02  val=3.213632e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.777
+[CD] Epoch 12800/20000 - train=2.264622e-02  val=3.213199e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.777
+[CD] Epoch 13000/20000 - train=2.264553e-02  val=3.212713e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.777
+[CD] Epoch 13200/20000 - train=2.264484e-02  val=3.212281e-03  mean(Cd_cyl)~1.307  mean(Cd_soft)~0.777
+[CD] Epoch 13400/20000 - train=2.264415e-02  val=3.211835e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 13600/20000 - train=2.264346e-02  val=3.211375e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 13800/20000 - train=2.264277e-02  val=3.210983e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 14000/20000 - train=2.264208e-02  val=3.210443e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 14200/20000 - train=2.264139e-02  val=3.210038e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 14400/20000 - train=2.264071e-02  val=3.231226e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 14600/20000 - train=2.264001e-02  val=3.209579e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 14800/20000 - train=2.263932e-02  val=3.208160e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 15000/20000 - train=2.263863e-02  val=3.208498e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 15200/20000 - train=2.263794e-02  val=3.207742e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 15400/20000 - train=2.263725e-02  val=3.207256e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 15600/20000 - train=2.263656e-02  val=3.206365e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 15800/20000 - train=2.263587e-02  val=3.206405e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 16000/20000 - train=2.263519e-02  val=3.206149e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 16200/20000 - train=2.263449e-02  val=3.190346e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 16400/20000 - train=2.263380e-02  val=3.208430e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 16600/20000 - train=2.263311e-02  val=3.206108e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 16800/20000 - train=2.263243e-02  val=3.203125e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 17000/20000 - train=2.263173e-02  val=3.203719e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 17200/20000 - train=2.263106e-02  val=3.229668e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.777
+[CD] Epoch 17400/20000 - train=2.263036e-02  val=3.204556e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 17600/20000 - train=2.262967e-02  val=3.201843e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 17800/20000 - train=2.262898e-02  val=3.202451e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 18000/20000 - train=2.262829e-02  val=3.197434e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 18200/20000 - train=2.262761e-02  val=3.198566e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 18400/20000 - train=2.262692e-02  val=3.201236e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 18600/20000 - train=2.262622e-02  val=3.204070e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 18800/20000 - train=2.262553e-02  val=3.207026e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 19000/20000 - train=2.262485e-02  val=3.186200e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 19200/20000 - train=2.262416e-02  val=3.198310e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 19400/20000 - train=2.262347e-02  val=3.198526e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 19600/20000 - train=2.262278e-02  val=3.197339e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 19800/20000 - train=2.262208e-02  val=3.197312e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[CD] Epoch 20000/20000 - train=2.262140e-02  val=3.197097e-03  mean(Cd_cyl)~1.308  mean(Cd_soft)~0.778
+[RES] Epoch 1/20000 - train=2.002020e-02  val=6.112176e-04  lr=2.00e-03
+[RES] Epoch 200/20000 - train=9.903417e-03  val=1.279821e-03  lr=1.00e-03
+[RES] Epoch 400/20000 - train=7.234918e-03  val=2.644860e-03  lr=2.50e-04
+[RES] Epoch 600/20000 - train=7.024245e-03  val=3.810317e-03  lr=6.25e-05
+[RES] Epoch 800/20000 - train=6.947034e-03  val=4.238656e-03  lr=1.56e-05
+[RES] Epoch 1000/20000 - train=6.922800e-03  val=4.384131e-03  lr=3.91e-06
+[RES] Epoch 1200/20000 - train=6.915776e-03  val=4.427905e-03  lr=9.77e-07
+[RES] Epoch 1400/20000 - train=6.913802e-03  val=4.440241e-03  lr=2.44e-07
+[RES] Epoch 1600/20000 - train=6.913252e-03  val=4.443435e-03  lr=6.10e-08
+[RES] Epoch 1800/20000 - train=6.913105e-03  val=4.444675e-03  lr=1.53e-08
+[RES] Epoch 2000/20000 - train=6.913035e-03  val=4.445453e-03  lr=1.53e-08
+[RES] Epoch 2200/20000 - train=6.912949e-03  val=4.446168e-03  lr=1.53e-08
+[RES] Epoch 2400/20000 - train=6.912859e-03  val=4.446757e-03  lr=1.53e-08
+[RES] Epoch 2600/20000 - train=6.912766e-03  val=4.447186e-03  lr=1.53e-08
+[RES] Epoch 2800/20000 - train=6.912668e-03  val=4.447536e-03  lr=1.53e-08
+[RES] Epoch 3000/20000 - train=6.912551e-03  val=4.448251e-03  lr=1.53e-08
+[RES] Epoch 3200/20000 - train=6.912442e-03  val=4.448887e-03  lr=1.53e-08
+[RES] Epoch 3400/20000 - train=6.912312e-03  val=4.449396e-03  lr=1.53e-08
+[RES] Epoch 3600/20000 - train=6.912178e-03  val=4.450032e-03  lr=1.53e-08
+[RES] Epoch 3800/20000 - train=6.912042e-03  val=4.450701e-03  lr=1.53e-08
+[RES] Epoch 4000/20000 - train=6.911896e-03  val=4.451655e-03  lr=1.53e-08
+[RES] Epoch 4200/20000 - train=6.911751e-03  val=4.452307e-03  lr=1.53e-08
+[RES] Epoch 4400/20000 - train=6.911592e-03  val=4.453214e-03  lr=1.53e-08
+[RES] Epoch 4600/20000 - train=6.911431e-03  val=4.454026e-03  lr=1.53e-08
+[RES] Epoch 4800/20000 - train=6.911269e-03  val=4.455012e-03  lr=1.53e-08
+[RES] Epoch 5000/20000 - train=6.911100e-03  val=4.456349e-03  lr=1.53e-08
+[RES] Epoch 5200/20000 - train=6.910919e-03  val=4.457702e-03  lr=1.53e-08
+[RES] Epoch 5400/20000 - train=6.910739e-03  val=4.459182e-03  lr=1.53e-08
+[RES] Epoch 5600/20000 - train=6.910558e-03  val=4.460568e-03  lr=1.53e-08
+[RES] Epoch 5800/20000 - train=6.910359e-03  val=4.462160e-03  lr=1.53e-08
+[RES] Epoch 6000/20000 - train=6.910171e-03  val=4.463705e-03  lr=1.53e-08
+[RES] Epoch 6200/20000 - train=6.909980e-03  val=4.465425e-03  lr=1.53e-08
+[RES] Epoch 6400/20000 - train=6.909775e-03  val=4.467258e-03  lr=1.53e-08
+[RES] Epoch 6600/20000 - train=6.909571e-03  val=4.469154e-03  lr=1.53e-08
+[RES] Epoch 6800/20000 - train=6.909363e-03  val=4.471131e-03  lr=1.53e-08
+[RES] Epoch 7000/20000 - train=6.909161e-03  val=4.473076e-03  lr=1.53e-08
+[RES] Epoch 7200/20000 - train=6.908946e-03  val=4.474990e-03  lr=1.53e-08
+[RES] Epoch 7400/20000 - train=6.908738e-03  val=4.477032e-03  lr=1.53e-08
+[RES] Epoch 7600/20000 - train=6.908523e-03  val=4.479122e-03  lr=1.53e-08
+[RES] Epoch 7800/20000 - train=6.908301e-03  val=4.481212e-03  lr=1.53e-08
+[RES] Epoch 8000/20000 - train=6.908086e-03  val=4.483479e-03  lr=1.53e-08
+[RES] Epoch 8200/20000 - train=6.907869e-03  val=4.485762e-03  lr=1.53e-08
+[RES] Epoch 8400/20000 - train=6.907648e-03  val=4.488190e-03  lr=1.53e-08
+[RES] Epoch 8600/20000 - train=6.907430e-03  val=4.490554e-03  lr=1.53e-08
+[RES] Epoch 8800/20000 - train=6.907202e-03  val=4.493031e-03  lr=1.53e-08
+[RES] Epoch 9000/20000 - train=6.906984e-03  val=4.495604e-03  lr=1.53e-08
+[RES] Epoch 9200/20000 - train=6.906747e-03  val=4.498082e-03  lr=1.53e-08
+[RES] Epoch 9400/20000 - train=6.906526e-03  val=4.500545e-03  lr=1.53e-08
+[RES] Epoch 9600/20000 - train=6.906306e-03  val=4.503104e-03  lr=1.53e-08
+[RES] Epoch 9800/20000 - train=6.906073e-03  val=4.505680e-03  lr=1.53e-08
+[RES] Epoch 10000/20000 - train=6.905841e-03  val=4.508226e-03  lr=1.53e-08
+[RES] Epoch 10200/20000 - train=6.905613e-03  val=4.510787e-03  lr=1.53e-08
+[RES] Epoch 10400/20000 - train=6.905384e-03  val=4.513430e-03  lr=1.53e-08
+[RES] Epoch 10600/20000 - train=6.905152e-03  val=4.516041e-03  lr=1.53e-08
+[RES] Epoch 10800/20000 - train=6.904926e-03  val=4.518685e-03  lr=1.53e-08
+[RES] Epoch 11000/20000 - train=6.904696e-03  val=4.521282e-03  lr=1.53e-08
+[RES] Epoch 11200/20000 - train=6.904459e-03  val=4.523943e-03  lr=1.53e-08
+[RES] Epoch 11400/20000 - train=6.904229e-03  val=4.526606e-03  lr=1.53e-08
+[RES] Epoch 11600/20000 - train=6.903990e-03  val=4.529253e-03  lr=1.53e-08
+[RES] Epoch 11800/20000 - train=6.903765e-03  val=4.531901e-03  lr=1.53e-08
+[RES] Epoch 12000/20000 - train=6.903525e-03  val=4.534517e-03  lr=1.53e-08
+[RES] Epoch 12200/20000 - train=6.903295e-03  val=4.537119e-03  lr=1.53e-08
+[RES] Epoch 12400/20000 - train=6.903057e-03  val=4.539689e-03  lr=1.53e-08
+[RES] Epoch 12600/20000 - train=6.902831e-03  val=4.542259e-03  lr=1.53e-08
+[RES] Epoch 12800/20000 - train=6.902591e-03  val=4.544798e-03  lr=1.53e-08
+[RES] Epoch 13000/20000 - train=6.902352e-03  val=4.547338e-03  lr=1.53e-08
+[RES] Epoch 13200/20000 - train=6.902121e-03  val=4.549814e-03  lr=1.53e-08
+[RES] Epoch 13400/20000 - train=6.901888e-03  val=4.552259e-03  lr=1.53e-08
+[RES] Epoch 13600/20000 - train=6.901654e-03  val=4.554721e-03  lr=1.53e-08
+[RES] Epoch 13800/20000 - train=6.901421e-03  val=4.557086e-03  lr=1.53e-08
+[RES] Epoch 14000/20000 - train=6.901182e-03  val=4.559453e-03  lr=1.53e-08
+[RES] Epoch 14200/20000 - train=6.900954e-03  val=4.561787e-03  lr=1.53e-08
+[RES] Epoch 14400/20000 - train=6.900716e-03  val=4.564090e-03  lr=1.53e-08
+[RES] Epoch 14600/20000 - train=6.900485e-03  val=4.566394e-03  lr=1.53e-08
+[RES] Epoch 14800/20000 - train=6.900246e-03  val=4.568682e-03  lr=1.53e-08
+[RES] Epoch 15000/20000 - train=6.900006e-03  val=4.570954e-03  lr=1.53e-08
+[RES] Epoch 15200/20000 - train=6.899778e-03  val=4.573212e-03  lr=1.53e-08
+[RES] Epoch 15400/20000 - train=6.899538e-03  val=4.575453e-03  lr=1.53e-08
+[RES] Epoch 15600/20000 - train=6.899304e-03  val=4.577646e-03  lr=1.53e-08
+[RES] Epoch 15800/20000 - train=6.899066e-03  val=4.579840e-03  lr=1.53e-08
+[RES] Epoch 16000/20000 - train=6.898833e-03  val=4.582067e-03  lr=1.53e-08
+[RES] Epoch 16200/20000 - train=6.898599e-03  val=4.584278e-03  lr=1.53e-08
+[RES] Epoch 16400/20000 - train=6.898367e-03  val=4.586555e-03  lr=1.53e-08
+[RES] Epoch 16600/20000 - train=6.898126e-03  val=4.588735e-03  lr=1.53e-08
+[RES] Epoch 16800/20000 - train=6.897890e-03  val=4.590964e-03  lr=1.53e-08
+[RES] Epoch 17000/20000 - train=6.897658e-03  val=4.593161e-03  lr=1.53e-08
+[RES] Epoch 17200/20000 - train=6.897417e-03  val=4.595375e-03  lr=1.53e-08
+[RES] Epoch 17400/20000 - train=6.897186e-03  val=4.597590e-03  lr=1.53e-08
+[RES] Epoch 17600/20000 - train=6.896948e-03  val=4.599821e-03  lr=1.53e-08
+[RES] Epoch 17800/20000 - train=6.896717e-03  val=4.602053e-03  lr=1.53e-08
+[RES] Epoch 18000/20000 - train=6.896482e-03  val=4.604236e-03  lr=1.53e-08
+[RES] Epoch 18200/20000 - train=6.896243e-03  val=4.606437e-03  lr=1.53e-08
+[RES] Epoch 18400/20000 - train=6.896014e-03  val=4.608606e-03  lr=1.53e-08
+[RES] Epoch 18600/20000 - train=6.895774e-03  val=4.610823e-03  lr=1.53e-08
+[RES] Epoch 18800/20000 - train=6.895535e-03  val=4.612977e-03  lr=1.53e-08
+[RES] Epoch 19000/20000 - train=6.895303e-03  val=4.615179e-03  lr=1.53e-08
+[RES] Epoch 19200/20000 - train=6.895070e-03  val=4.617333e-03  lr=1.53e-08
+[RES] Epoch 19400/20000 - train=6.894831e-03  val=4.619521e-03  lr=1.53e-08
+[RES] Epoch 19600/20000 - train=6.894594e-03  val=4.621660e-03  lr=1.53e-08
+[RES] Epoch 19800/20000 - train=6.894361e-03  val=4.623816e-03  lr=1.53e-08
+[RES] Epoch 20000/20000 - train=6.894127e-03  val=4.625940e-03  lr=1.53e-08
+保存阻力系数参数: c:\Users\admin\deepxde\myproject\runs_force\20260413-183845__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-1000__tol-1e-08\learned_cd_params.json
+保存逐样本 Cd 明细: c:\Users\admin\deepxde\myproject\runs_force\20260413-183845__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-1000__tol-1e-08\learned_cd_values.csv
+保存图像: c:\Users\admin\deepxde\myproject\runs_force\20260413-183845__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-1000__tol-1e-08\cd_vs_re.png
+保存图像: c:\Users\admin\deepxde\myproject\runs_force\20260413-183845__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-1000__tol-1e-08\pred_vs_true_velocity.png  |  该组 RMSE=0.1004, MAPE=1450318721.54%
+学习到的 Cd_cyl(mean)=1.2300, Cd_soft(mean)=0.8400
+当前作图组 Hc=[0.23], h=[0.01], E≈[300000.0]
+保存图像: c:\Users\admin\deepxde\myproject\runs_force\20260413-183845__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-1000__tol-1e-08\error_vs_velocity.png
