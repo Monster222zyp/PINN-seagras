@@ -9,6 +9,15 @@ dist/
 *.egg-info/
 *.egg
 
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.env/
+.conda/
+conda-env/
+
 # Sphinx documentation
 docs/_build/
 
