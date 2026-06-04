@@ -54,15 +54,20 @@ MU_WATER = 1e-3                # 动力黏度 (Pa·s)
 
 # 欧拉梁迭代/离散
 N_NODES_BEAM = 200             # 梁离散节点数
-AREA_MODE = "max"              # "local" 或 "max"
+AREA_MODE = "tangent_v2"       # 默认使用 Matlab 最新主流程的切线角模型
 MAX_ITER_BASELINE = 1000       # 基线迭代次数（>0 使用迭代模型，=0 使用简化模型）
 TOL_BASELINE = 1e-8            # 迭代收敛阈值
 
-# 角度为 180° 的条带：认为力极小（近 0）。
-THETA180_ZERO_FORCE = True     # 是否对 theta≈180° 的条带置零/削弱
-THETA_ZERO_DEG = 180.0         # 认为近零力的角度中心（度）
-THETA_ZERO_TOL_DEG = 1e-4      # 角度容差（度）；|theta - 180| <= 容差 时生效
-THETA_ZERO_SCALE = 0.0         # 削弱比例（0.0 表示直接置零）
+# 180° 按 Matlab v2 的对称破坏策略处理：给微小初始扰动，不再直接置零。
+THETA180_PERTURBATION = True
+THETA180_PERTURBATION_SCALE = 1e-6
+
+# 遮蔽效应参数：与 Matlab calculate_shielding_coefficient 默认值一致。
+ENABLE_SHIELDING = True
+SHIELDING_FUNC_TYPE = "linear"
+MIN_SHIELDING_COEF = 0.4
+MAX_SHIELDING_COEF = 1.0
+INITIAL_SHIELDING_ANGLE_DIFF_DEG = 120.0
 
 # 学习超参数
 LR_CD = 3e-3                   # Cd 参数学习率
@@ -116,6 +121,78 @@ def finite_difference_matrix(n: int, dx: float) -> np.ndarray:
     return A / (dx ** 4)
 
 
+def compute_angle_with_large_deformation(
+    dw_dx: np.ndarray,
+    theta_initial: float,
+    E: float,
+    prev_total_angle_rad: np.ndarray,
+    smoothing_factor: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """移植 Matlab 最新默认的 asinh 大变形切线角映射。"""
+    if E < 8e4:
+        dw_dx_equivalent = np.arcsinh(dw_dx * 0.7 * 0.8) * 0.9
+    else:
+        dw_dx_equivalent = np.arcsinh(dw_dx * 0.7 * 1.2) * 1.1
+
+    max_stable_slope = 3.0
+    max_allowable_change = np.max(np.abs(dw_dx_equivalent))
+    if max_allowable_change > max_stable_slope:
+        reduction_factor = max_stable_slope / max_allowable_change * 0.8
+        dw_dx_equivalent = dw_dx_equivalent * reduction_factor
+
+    total_angle_rad_new = theta_initial + dw_dx_equivalent
+
+    if prev_total_angle_rad is not None:
+        angle_change_raw = total_angle_rad_new - prev_total_angle_rad
+        max_reasonable_change = np.deg2rad(180.0)
+        unstable_mask = np.abs(angle_change_raw) > max_reasonable_change
+        if np.any(unstable_mask):
+            angle_change_raw[unstable_mask] = (
+                np.sign(angle_change_raw[unstable_mask]) * max_reasonable_change * 0.7
+            )
+
+        total_angle_rad_new = prev_total_angle_rad + angle_change_raw
+        local_deformation_rate = np.abs(total_angle_rad_new - prev_total_angle_rad)
+        max_smooth_rate = np.deg2rad(5.0)
+        smooth_factor_local = smoothing_factor * (local_deformation_rate <= max_smooth_rate)
+        smooth_adaptive = smoothing_factor * 0.3 + smooth_factor_local * 0.7
+        total_angle_rad_new = (
+            smooth_adaptive * total_angle_rad_new
+            + (1.0 - smooth_adaptive) * prev_total_angle_rad
+        )
+
+    total_angle_rad = np.mod(total_angle_rad_new, 2.0 * np.pi)
+    slope_rad = total_angle_rad - theta_initial
+    return slope_rad, total_angle_rad
+
+
+def calculate_shielding_coefficient(
+    current_angle_diff_deg: float,
+    initial_angle_diff_deg: float = INITIAL_SHIELDING_ANGLE_DIFF_DEG,
+    func_type: str = SHIELDING_FUNC_TYPE,
+    min_shielding: float = MIN_SHIELDING_COEF,
+    max_shielding: float = MAX_SHIELDING_COEF,
+) -> float:
+    """与 Matlab calculate_shielding_coefficient.m 对齐的第二列遮蔽修正。"""
+    range_shielding = max_shielding - min_shielding
+    angle_ratio = current_angle_diff_deg / max(initial_angle_diff_deg, 1e-6)
+    angle_ratio = min(max(angle_ratio, 0.0), 1.0)
+    func_type = func_type.lower()
+    if func_type in ("linear", "linear_bounded"):
+        coef = min_shielding + range_shielding * angle_ratio
+    elif func_type == "quadratic":
+        coef = min_shielding + (1.0 - (1.0 - angle_ratio) ** 2) * range_shielding
+    elif func_type == "exponential":
+        coef = min_shielding + np.exp(-5.0 * (1.0 - angle_ratio)) * range_shielding
+    elif func_type == "cubic":
+        coef = min_shielding + (1.0 - (1.0 - angle_ratio) ** 3) * range_shielding
+    elif func_type == "sqrt":
+        coef = min_shielding + range_shielding * np.sqrt(angle_ratio)
+    else:
+        coef = min_shielding + range_shielding * angle_ratio
+    return float(max(min_shielding, min(max_shielding, coef)))
+
+
 def compute_force_matlab_style(
     X: np.ndarray,
     rho: float = 1000.0,
@@ -123,10 +200,10 @@ def compute_force_matlab_style(
     Cd_soft: float = 1.0,
     max_iter: int = 30,
     tol: float = 1e-6,
-    area_mode: str = "local",
+    area_mode: str = "tangent_v2",
     return_angle_components: bool = False,
 ) -> tuple:
-    """按照 calculate_drag_coefficient.m 的思路计算物理基线力。
+    """按照 Matlab 最新默认 calculate_drag_coefficient_v2.m 计算物理基线力。
 
     返回: (F_total, F_cylinder, F_soft_total)
     """
@@ -155,70 +232,163 @@ def compute_force_matlab_style(
             for k in range(3):
                 theta_k_deg = angs[i, k]
                 theta_k = np.deg2rad(theta_k_deg)
-                scale = 1.0
-                if THETA180_ZERO_FORCE and abs(theta_k_deg - THETA_ZERO_DEG) <= THETA_ZERO_TOL_DEG:
-                    scale = THETA_ZERO_SCALE
                 # MATLAB 简化模型：F_soft = 0.5*rho*Cd_soft*h*L*|sin(theta)|*U^2
                 ang_factor = np.abs(np.sin(theta_k))
                 F_single = 0.5 * rho * Cd_soft * h[i] * L[i] * ang_factor * (U ** 2)
-                comp = n_per_col[i] * (scale * abs(F_single))
+                comp = n_per_col[i] * abs(F_single)
                 F_soft_cols_mat[i, k] = comp
                 total += comp
             F_soft_total[i] = total
     else:
-        # 迭代模型（欧拉梁 + 动态角度 + 分布载荷）
+        # 迭代模型（欧拉梁 + asinh 大变形切线角 + 分级加载 + 自适应松弛）
         for i in range(n_samples):
             L_i, t_i, h_i, E_i = L[i], t[i], h[i], E[i]
             U = v[i]
-            # 梁离散
             n_nodes = N_NODES_BEAM
             dx = L_i / (n_nodes - 1)
             x = np.linspace(0.0, L_i, n_nodes)
             I = h_i * (t_i ** 3) / 12.0
             EI = E_i * I
             A = finite_difference_matrix(n_nodes, dx)
-            F_soft_cols = []
+
+            if E_i < 5e4:
+                relaxation_factor = 0.15
+                num_velocity_steps = max(12, min(20, int(np.ceil(U / 0.05))))
+                angle_smoothing_factor = 0.60
+            elif E_i < 8e4:
+                relaxation_factor = 0.20
+                num_velocity_steps = max(4, min(8, int(np.ceil(U / 0.15))))
+                angle_smoothing_factor = 0.70
+            elif E_i < 1e7:
+                relaxation_factor = 0.25
+                num_velocity_steps = max(4, min(8, int(np.ceil(U / 0.15))))
+                angle_smoothing_factor = 0.70
+            else:
+                relaxation_factor = 0.35
+                num_velocity_steps = 1
+                angle_smoothing_factor = 0.75
+
+            sample_max_iter = int(max_iter)
+            sample_tol = float(tol)
+            if E_i < 1e6:
+                sample_max_iter = max(sample_max_iter, 3000)
+                sample_tol = min(sample_tol, 1e-7)
+
+            F_soft_cols = np.zeros(3, dtype=float)
+            tip_angles = np.zeros(3, dtype=float)
             for k in range(3):
                 theta0_deg = angs[i, k]
                 theta0 = np.deg2rad(theta0_deg)
                 w_prev = np.zeros(n_nodes, dtype=float)
-                for _ in range(max_iter):
-                    # 斜率角
-                    slope_rad = np.arctan(np.gradient(w_prev, dx))
-                    # 角度迭代方向：>180°（pi）受力后角度变小；<180°受力后角度变大
-                    if theta0 > np.pi:
-                        total_angle_rad = theta0 - slope_rad
-                    else:
-                        total_angle_rad = theta0 + slope_rad
-                    # MATLAB 迭代模型：q = sign(U_normal) * [0.5*rho*Cd_soft*sin(max(total_angle))*h*|U_normal|^2]
-                    U_normal = U * np.sin(total_angle_rad)
-                    if area_mode == "max":
-                        ang_scalar = np.sin(np.max(total_angle_rad))
-                    else:
-                        ang_scalar = np.sin(total_angle_rad)
-                    q_magnitude = 0.5 * rho * Cd_soft * ang_scalar * h_i * (np.abs(U_normal) ** 2)
-                    direction = np.sign(U_normal)
-                    q = direction * q_magnitude
-                    # 若该列初始角度接近 180°，将载荷削弱/置零
-                    if THETA180_ZERO_FORCE and abs(theta0_deg - THETA_ZERO_DEG) <= THETA_ZERO_TOL_DEG:
-                        q = THETA_ZERO_SCALE * q
-                    # 位移解：A 已含 1/dx^4 缩放 => A·w = q/EI
-                    w_new = np.linalg.solve(A, q / (EI + 1e-12))
-                    # 固定端校正
-                    w_new[0] = 0.0
-                    if n_nodes > 1:
-                        w_new[1] = w_new[0]
-                    # 收敛
-                    if np.max(np.abs(w_new - w_prev)) < tol:
-                        w_prev = w_new
+                if THETA180_PERTURBATION and abs(theta0 - np.pi) < 1e-6:
+                    x_norm = x / L_i
+                    w_prev = THETA180_PERTURBATION_SCALE * L_i * (x_norm ** 2) * (1.0 - x_norm)
+
+                prev_total_angle_rad = theta0 * np.ones(n_nodes, dtype=float)
+                alpha = relaxation_factor
+                if (0.0 <= theta0 <= np.pi / 2.0) or (3.0 * np.pi / 2.0 <= theta0 <= 2.0 * np.pi):
+                    alpha = min(alpha, 0.15)
+                if E_i < 1e6:
+                    alpha = min(alpha, 0.1)
+
+                prev_residual = np.inf
+                iters_per_step = max(10, int(np.ceil(sample_max_iter / num_velocity_steps)))
+                global_iter = 0
+                converged = False
+                residual_w_abs = np.inf
+
+                for step in range(1, num_velocity_steps + 1):
+                    U_eff = U * (step / num_velocity_steps)
+                    for _ in range(iters_per_step):
+                        global_iter += 1
+                        if global_iter > sample_max_iter:
+                            break
+
+                        dw_dx = np.gradient(w_prev, dx)
+                        _, total_angle_rad = compute_angle_with_large_deformation(
+                            dw_dx,
+                            theta0,
+                            E_i,
+                            prev_total_angle_rad,
+                            angle_smoothing_factor,
+                        )
+                        prev_total_angle_rad = total_angle_rad
+
+                        sin_total = np.sin(total_angle_rad)
+                        if abs(theta0 - np.pi) < 1e-6 and np.all(np.abs(sin_total) < 1e-6):
+                            signs = np.sign(sin_total)
+                            signs[signs == 0.0] = 1.0
+                            sin_total = signs * np.maximum(np.abs(sin_total), 1e-3)
+                        elif abs(theta0) < np.deg2rad(10.0) or abs(theta0 - 2.0 * np.pi) < np.deg2rad(10.0):
+                            small_mask = np.abs(sin_total) < 1e-4
+                            if np.any(small_mask):
+                                signs = np.sign(sin_total[small_mask])
+                                signs[signs == 0.0] = 1.0
+                                sin_total[small_mask] = signs * 1e-2
+
+                        U_normal = U_eff * sin_total
+                        q = 0.5 * rho * Cd_soft * h_i * (np.abs(U_normal) ** 2) * np.sign(U_normal)
+
+                        w_new = np.linalg.solve(A, q / (EI + 1e-12))
+                        w_new[0] = 0.0
+                        if n_nodes > 1:
+                            w_new[1] = w_new[0]
+
+                        w_max_trial = np.max(np.abs(w_new))
+                        if w_max_trial > 3.0 * L_i:
+                            w_new = w_new * (3.0 * L_i / w_max_trial)
+
+                        delta_w = w_new - w_prev
+                        residual_w_abs = np.max(np.abs(delta_w))
+                        if residual_w_abs > prev_residual * 1.1 and global_iter > 3:
+                            alpha = max(alpha * 0.5, 0.05)
+                        elif residual_w_abs < prev_residual * 0.9:
+                            alpha = min(alpha * 1.02, 0.8)
+
+                        if E_i < 1e6 and np.max(np.abs(w_new)) > 2.0 * L_i:
+                            alpha = max(alpha * 0.3, 0.02)
+
+                        prev_residual = residual_w_abs
+                        w_prev = w_prev + alpha * delta_w
+
+                        if step == num_velocity_steps:
+                            if residual_w_abs < sample_tol:
+                                converged = True
+                                break
+                        elif residual_w_abs < sample_tol * 10.0:
+                            break
+                    if converged:
                         break
-                    w_prev = w_new
-                F_single = np.trapz(q, x)
-                comp = n_per_col[i] * np.abs(F_single)
-                F_soft_cols.append(comp)
-                F_soft_cols_mat[i, k] = comp
-            # 列力本就为正，直接求和
-            F_soft_total[i] = np.sum(F_soft_cols)
+
+                dw_dx_final = np.gradient(w_prev, dx)
+                _, total_angle_rad = compute_angle_with_large_deformation(
+                    dw_dx_final,
+                    theta0,
+                    E_i,
+                    prev_total_angle_rad,
+                    angle_smoothing_factor,
+                )
+                U_normal_final = U * np.sin(total_angle_rad)
+                q_final = (
+                    0.5
+                    * rho
+                    * Cd_soft
+                    * h_i
+                    * (np.abs(U_normal_final) ** 2)
+                    * np.sign(U_normal_final)
+                )
+                F_single = np.trapz(q_final, x)
+                F_soft_cols[k] = n_per_col[i] * F_single
+                tip_angles[k] = np.rad2deg(total_angle_rad[-1])
+
+            if ENABLE_SHIELDING and len(F_soft_cols) >= 2:
+                diff_angle = abs(tip_angles[1] - tip_angles[0])
+                coef = calculate_shielding_coefficient(diff_angle)
+                F_soft_cols[1] *= coef
+
+            F_soft_cols_abs = np.abs(F_soft_cols)
+            F_soft_cols_mat[i, :] = F_soft_cols_abs
+            F_soft_total[i] = np.sum(F_soft_cols_abs)
 
     F_total = F_cyl + F_soft_total
     if return_angle_components:
@@ -440,10 +610,8 @@ def main():
             "TOL_BASELINE": TOL_BASELINE,
         },
         "theta180": {
-            "enabled": THETA180_ZERO_FORCE,
-            "theta_zero_deg": THETA_ZERO_DEG,
-            "theta_zero_tol_deg": THETA_ZERO_TOL_DEG,
-            "theta_zero_scale": THETA_ZERO_SCALE,
+            "enabled": THETA180_PERTURBATION,
+            "perturbation_scale": THETA180_PERTURBATION_SCALE,
         },
         "training": {
             "LR_CD": LR_CD,
@@ -470,7 +638,6 @@ def main():
         Cd_soft=2.0,
         max_iter=MAX_ITER_BASELINE,
         tol=TOL_BASELINE,
-        area_mode=AREA_MODE,
     )
     # 同时保留简单先验以供特征构造
     Fc, F_blade_base, angle_trigs = compute_physics_priors(X)
@@ -541,7 +708,6 @@ def main():
         Cd_soft=1.0,
         max_iter=MAX_ITER_BASELINE,
         tol=TOL_BASELINE,
-        area_mode=AREA_MODE,
     )
     y_all = y_shuf
     r0_all = (y_all - (Fc1_all + Fs1_all)).reshape(-1, 1)
@@ -711,7 +877,6 @@ def main():
         Cd_soft=1.0,
         max_iter=MAX_ITER_BASELINE,  # 预测阶段使用迭代欧拉梁基线
         tol=TOL_BASELINE,
-        area_mode=AREA_MODE,
         return_angle_components=True,
     )
     y_pred = cd_c_all * Fc1_all_pred + cd_s_all * Fs1_all_pred + r_pred.squeeze(-1)

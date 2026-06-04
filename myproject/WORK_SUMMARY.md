@@ -2,6 +2,11 @@
 
 本目录实现了基于实验数据与物理先验的力学预测建模，核心是从 `pinn_training_data.mat` 中读取样本，结合“圆柱+柔性条带（欧拉梁）”的物理基线与可学习的阻力系数 `Cd(Re)`，再用小型神经网络学习剩余残差，实现总力预测与可视化诊断。
 
+## 2026-05-22 约束方程更新
+- Python 侧 `compute_force_matlab_style` 已按 `D:\OneDrive - 西湖大学\水草实验\实验数据\Matlab-seagrass` 的最新默认主流程对齐：`main_clean.m` 默认 `USE_PHYSICAL_ANGLE_MODEL = false`，因此使用 `calculate_drag_coefficient_v2.m` 的切线角模型，而不是可选的物理弦角模型。
+- 旧实现中的 `theta > pi` 时减斜率、`sin(max(total_angle))` 额外投影因子、以及 180° 直接置零逻辑已移除。
+- 新实现加入 `asinh` 大变形角度映射、速度分级加载、自适应位移松弛、最大位移限制、180° 微扰动和第二列遮蔽系数。
+
 ## 目标与思路
 - **目标**: 预测实验条件下的总测力 `Y_matrix`，并给出与来流速度的关系、`Cd` 与雷诺数 `Re` 的关系等可解释结果。
 - **总体思路**:
