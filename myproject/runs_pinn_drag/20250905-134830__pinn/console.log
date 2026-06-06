@@ -1,0 +1,6 @@
+运行目录: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250905-134830__pinn
+[EP 1/200] train=1.066977e+00  val(data)=3.359749e-01  lr=2.00e-03
+[EP 200/200] train=7.108530e-02  val(data)=5.717904e-02  lr=2.00e-03
+保存图像: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250905-134830__pinn\training_curves.png
+验证集 RMSE = 0.196278 N
+保存图像: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250905-134830__pinn\pred_vs_true_val.png
