@@ -1,0 +1,9 @@
+Run directory: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260606-030621__latent_physics
+Data file: C:\Users\admin\deepxde\myproject\pinn_training_data.mat
+Synthetic data file: C:\Users\admin\deepxde\myproject\pinn_training_data_synth.mat
+Device: cpu
+[0001/2] train_force=1.585 val_force=1.094
+[0002/2] train_force=0.6934 val_force=0.2266
+Saved latent CSV: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260606-030621__latent_physics\latent_predictions.csv
+Metrics: {'all': {'rmse': 0.36009907722473145, 'mae': 0.22808188199996948, 'r2': 0.767257571220398}, 'train': {'rmse': 0.3607397675514221, 'mae': 0.2171677201986313, 'r2': 0.6932371854782104}, 'val': {'rmse': 0.3581700325012207, 'mae': 0.26082438230514526, 'r2': 0.8455864787101746}, 'synthetic': {'rmse': 0.5449727177619934, 'mae': 0.4172690808773041, 'r2': 0.7848154306411743}, 'experimental_sample_count': 228, 'synthetic_sample_count': 57, 'mean_residual_ratio': 0.06744471760956865, 'best_epoch': 2, 'best_val_force': 0.2265986204147339}
+Training complete.

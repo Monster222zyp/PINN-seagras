@@ -1,0 +1,36 @@
+Run directory: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20260606-002807__latent_physics
+Data file: C:\Users\admin\PINN-seagras\myproject\pinn_training_data.mat
+[0001/3000] train_force=0.8134 val_force=1.072
+[0100/3000] train_force=0.008507 val_force=0.0559
+[0200/3000] train_force=0.007168 val_force=0.07699
+[0300/3000] train_force=0.005923 val_force=0.1213
+[0400/3000] train_force=0.00504 val_force=0.1126
+[0500/3000] train_force=0.004262 val_force=0.1218
+[0600/3000] train_force=0.004454 val_force=0.1282
+[0700/3000] train_force=0.002924 val_force=0.1264
+[0800/3000] train_force=0.004027 val_force=0.1105
+[0900/3000] train_force=0.002785 val_force=0.07783
+[1000/3000] train_force=0.002786 val_force=0.09756
+[1100/3000] train_force=0.002269 val_force=0.07876
+[1200/3000] train_force=0.002931 val_force=0.07275
+[1300/3000] train_force=0.001616 val_force=0.07126
+[1400/3000] train_force=0.001296 val_force=0.07373
+[1500/3000] train_force=0.00128 val_force=0.07168
+[1600/3000] train_force=0.0008791 val_force=0.08214
+[1700/3000] train_force=0.000818 val_force=0.08319
+[1800/3000] train_force=0.000529 val_force=0.08145
+[1900/3000] train_force=0.0005314 val_force=0.07416
+[2000/3000] train_force=0.0005212 val_force=0.07005
+[2100/3000] train_force=0.0003834 val_force=0.07601
+[2200/3000] train_force=0.0003194 val_force=0.07534
+[2300/3000] train_force=0.0003009 val_force=0.07195
+[2400/3000] train_force=0.0003641 val_force=0.07198
+[2500/3000] train_force=0.0002804 val_force=0.07149
+[2600/3000] train_force=0.0003559 val_force=0.07101
+[2700/3000] train_force=0.0002722 val_force=0.07051
+[2800/3000] train_force=0.0002677 val_force=0.0706
+[2900/3000] train_force=0.0002687 val_force=0.07054
+[3000/3000] train_force=0.0002775 val_force=0.07056
+Saved latent CSV: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20260606-002807__latent_physics\latent_predictions.csv
+Metrics: {'rmse': 0.0760946199297905, 'mae': 0.05688862130045891, 'r2': 0.989607036113739}
+Training complete.

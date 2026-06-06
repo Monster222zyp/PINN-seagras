@@ -1,0 +1,38 @@
+Run directory: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260606-023401__latent_physics
+Data file: pinn_training_data.mat
+Synthetic data file: pinn_training_data_synth.mat
+Device: cpu
+[0001/3000] train_force=1.186 val_force=0.4588
+[0100/3000] train_force=0.02088 val_force=0.0862
+[0200/3000] train_force=0.02086 val_force=0.05488
+[0300/3000] train_force=0.01503 val_force=0.06621
+[0400/3000] train_force=0.01209 val_force=0.04902
+[0500/3000] train_force=0.008811 val_force=0.06214
+[0600/3000] train_force=0.009918 val_force=0.0661
+[0700/3000] train_force=0.008917 val_force=0.06195
+[0800/3000] train_force=0.00785 val_force=0.05786
+[0900/3000] train_force=0.01026 val_force=0.06083
+[1000/3000] train_force=0.007421 val_force=0.0569
+[1100/3000] train_force=0.008301 val_force=0.06191
+[1200/3000] train_force=0.007939 val_force=0.05925
+[1300/3000] train_force=0.01045 val_force=0.05886
+[1400/3000] train_force=0.008119 val_force=0.06048
+[1500/3000] train_force=0.009142 val_force=0.05975
+[1600/3000] train_force=0.01083 val_force=0.0609
+[1700/3000] train_force=0.00703 val_force=0.06097
+[1800/3000] train_force=0.008622 val_force=0.06064
+[1900/3000] train_force=0.009428 val_force=0.06105
+[2000/3000] train_force=0.007124 val_force=0.06154
+[2100/3000] train_force=0.008429 val_force=0.06165
+[2200/3000] train_force=0.008172 val_force=0.06114
+[2300/3000] train_force=0.008142 val_force=0.06017
+[2400/3000] train_force=0.008989 val_force=0.0606
+[2500/3000] train_force=0.01043 val_force=0.06162
+[2600/3000] train_force=0.01014 val_force=0.06135
+[2700/3000] train_force=0.008976 val_force=0.05968
+[2800/3000] train_force=0.006458 val_force=0.06048
+[2900/3000] train_force=0.007127 val_force=0.06083
+[3000/3000] train_force=0.008783 val_force=0.06181
+Saved latent CSV: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260606-023401__latent_physics\latent_predictions.csv
+Metrics: {'all': {'rmse': 0.07319752126932144, 'mae': 0.0513814277946949, 'r2': 0.9903833270072937}, 'train': {'rmse': 0.055403582751750946, 'mae': 0.04042907804250717, 'r2': 0.9927641153335571}, 'val': {'rmse': 0.11055692285299301, 'mae': 0.08423848450183868, 'r2': 0.9852877855300903}, 'synthetic': {'rmse': 0.13429594039916992, 'mae': 0.06849111616611481, 'r2': 0.9741542339324951}, 'experimental_sample_count': 228, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.10075168213642419, 'best_epoch': 367, 'best_val_force': 0.04317465052008629}
+Training complete.

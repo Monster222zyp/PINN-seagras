@@ -1,0 +1,9 @@
+运行目录: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250904-145018__pinn
+[EP 1/30] train=1.065891e+00  val(data)=3.359333e-01  lr=2.00e-03
+保存图像: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250904-145018__pinn\training_curves.png
+保存图像: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250904-145018__pinn\pred_vs_true.png
+保存图像: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250904-145018__pinn\error_vs_re.png
+保存图像: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250904-145018__pinn\slices_Eh_1.png
+保存图像: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250904-145018__pinn\slices_Eh_2.png
+保存图像: C:\Users\admin\PINN-seagras\myproject\runs_pinn_drag\20250904-145018__pinn\slices_Eh_3.png
+训练完成。

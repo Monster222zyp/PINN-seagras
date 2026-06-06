@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\admin\deepxde\myproject\train_latent_physics_pinn.py", line 1173, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\admin\deepxde\myproject\train_latent_physics_pinn.py", line 1113, in main
+    train_log = run_epoch(model, train_loader, optimizer, force_scale, weights, device)
+  File "C:\Users\admin\deepxde\myproject\train_latent_physics_pinn.py", line 632, in run_epoch
+    loss, logs = loss_fn(out, batch, force_scale, weights)
+                 ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\deepxde\myproject\train_latent_physics_pinn.py", line 573, in loss_fn
+    aux_weight[mask],
+    ~~~~~~~~~~^^^^^^
+IndexError: The shape of the mask [171, 3] at index 1 does not match the shape of the indexed tensor [171, 1] at index 1

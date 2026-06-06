@@ -1,0 +1,37 @@
+Run directory: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260606-023836__latent_physics
+Data file: pinn_training_data.mat
+Device: cpu
+[0001/3000] train_force=2.568 val_force=1.981
+[0100/3000] train_force=0.02111 val_force=0.06248
+[0200/3000] train_force=0.01685 val_force=0.06859
+[0300/3000] train_force=0.01466 val_force=0.06747
+[0400/3000] train_force=0.01332 val_force=0.07651
+[0500/3000] train_force=0.0124 val_force=0.09159
+[0600/3000] train_force=0.01184 val_force=0.1053
+[0700/3000] train_force=0.01143 val_force=0.1144
+[0800/3000] train_force=0.0112 val_force=0.1186
+[0900/3000] train_force=0.01103 val_force=0.121
+[1000/3000] train_force=0.0109 val_force=0.1225
+[1100/3000] train_force=0.01082 val_force=0.1233
+[1200/3000] train_force=0.01076 val_force=0.1239
+[1300/3000] train_force=0.0107 val_force=0.1244
+[1400/3000] train_force=0.01064 val_force=0.1249
+[1500/3000] train_force=0.01058 val_force=0.1254
+[1600/3000] train_force=0.01051 val_force=0.1259
+[1700/3000] train_force=0.01044 val_force=0.1264
+[1800/3000] train_force=0.01037 val_force=0.1268
+[1900/3000] train_force=0.01029 val_force=0.1272
+[2000/3000] train_force=0.01021 val_force=0.1275
+[2100/3000] train_force=0.01012 val_force=0.1278
+[2200/3000] train_force=0.01003 val_force=0.1279
+[2300/3000] train_force=0.009931 val_force=0.1278
+[2400/3000] train_force=0.009818 val_force=0.1275
+[2500/3000] train_force=0.009687 val_force=0.127
+[2600/3000] train_force=0.009531 val_force=0.1261
+[2700/3000] train_force=0.009337 val_force=0.125
+[2800/3000] train_force=0.009098 val_force=0.1236
+[2900/3000] train_force=0.008807 val_force=0.1221
+[3000/3000] train_force=0.008468 val_force=0.1206
+Saved latent CSV: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260606-023836__latent_physics\latent_predictions.csv
+Metrics: {'all': {'rmse': 0.07648251205682755, 'mae': 0.055007096379995346, 'r2': 0.9895008206367493}, 'train': {'rmse': 0.05496465414762497, 'mae': 0.041236698627471924, 'r2': 0.9928783178329468}, 'val': {'rmse': 0.1197286918759346, 'mae': 0.09631829708814621, 'r2': 0.9827454686164856}, 'synthetic': None, 'experimental_sample_count': 228, 'synthetic_sample_count': 0, 'mean_residual_ratio': 0.03952652078710104, 'best_epoch': 76, 'best_val_force': 0.05414411798119545}
+Training complete.

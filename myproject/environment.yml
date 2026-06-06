@@ -1,0 +1,17 @@
+name: pinn-seagrass
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy>=1.24
+  - scipy>=1.10
+  - h5py>=3.8
+  - matplotlib>=3.7
+  - pytorch>=2.1
+  - cpuonly
+  - pip
+  - pip:
+      - deepxde>=1.10
+

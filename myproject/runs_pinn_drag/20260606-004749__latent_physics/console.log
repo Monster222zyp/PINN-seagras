@@ -1,0 +1,5 @@
+Run directory: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260606-004749__latent_physics
+Data file: C:\Users\admin\deepxde\myproject\pinn_training_data.mat
+[0001/2] train_force=0.8134 val_force=1.072
+[0002/2] train_force=0.3032 val_force=0.8489
+Saved latent CSV: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260606-004749__latent_physics\latent_predictions.csv
