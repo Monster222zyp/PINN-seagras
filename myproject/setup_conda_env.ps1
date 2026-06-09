@@ -19,3 +19,4 @@ Write-Host "Conda environment is ready and activated in this PowerShell session.
 Write-Host "To activate later, run:"
 Write-Host "  conda activate pinn-seagrass"
 
+pause

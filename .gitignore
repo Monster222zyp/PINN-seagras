@@ -32,3 +32,6 @@ deepxde/_version.py
 
 # PyCharm
 .idea/
+
+# PINN 运行输出目录
+myproject/runs_pinn_drag/
