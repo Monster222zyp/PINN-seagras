@@ -471,8 +471,9 @@ class LatentPhysicsPINN(nn.Module):
             layers.extend([nn.Linear(last, hidden), nn.SiLU(), nn.LayerNorm(hidden)])
             last = hidden
         self.encoder = nn.Sequential(*layers)
-        # stem Cd scale, leaf Cd scale, shielding, reconfiguration, col1..3, residual
-        self.head = nn.Linear(hidden, 8)
+        # stem Cd scale, leaf Cd scale, shielding, base reconfiguration,
+        # col1..3, reconfiguration quadratic/cubic terms, residual
+        self.head = nn.Linear(hidden, 10)
         self.residual_scale = residual_scale
         self.cd_log_range = cd_log_range
         self.shielding_min = shielding_min
@@ -501,6 +502,11 @@ class LatentPhysicsPINN(nn.Module):
             self.reconfiguration_max - self.reconfiguration_min
         ) * torch.sigmoid(latent[:, 3:4])
         column_correction = torch.exp(self.column_log_range * torch.tanh(latent[:, 4:7]))
+        recon_quad_coef = torch.nn.functional.softplus(latent[:, 7:8])
+        recon_cubic_coef = torch.nn.functional.softplus(latent[:, 8:9])
+
+        r = reconfiguration_factor
+        reconfiguration_gain = r + recon_quad_coef * r.square() + recon_cubic_coef * r.pow(3)
 
         q = 0.5 * RHO_DEFAULT * u.square()
         f_stem = q * cd_stem_eff * d * h_cyl
@@ -515,7 +521,7 @@ class LatentPhysicsPINN(nn.Module):
             * n_per_column
             * angle_projection
             * column_correction
-            * reconfiguration_factor
+            * reconfiguration_gain
         )
         # Avoid in-place writes on autograd-tracked tensors.
         if f_leaf_cols_base.shape[1] >= 2:
@@ -527,7 +533,7 @@ class LatentPhysicsPINN(nn.Module):
             f_leaf_cols = f_leaf_cols_base
         f_leaf = f_leaf_cols.sum(dim=1, keepdim=True)
         f_physics = f_stem + f_leaf
-        residual = self.residual_scale * f_physics.detach().clamp_min(1e-6) * torch.tanh(latent[:, 7:8])
+        residual = self.residual_scale * f_physics.detach().clamp_min(1e-6) * torch.tanh(latent[:, 9:10])
         force = f_physics + residual
 
         return {
@@ -541,6 +547,9 @@ class LatentPhysicsPINN(nn.Module):
             "Cd_leaf_eff": cd_leaf_eff,
             "shielding_coef": shielding_coef,
             "reconfiguration_factor": reconfiguration_factor,
+            "reconfiguration_quad_coef": recon_quad_coef,
+            "reconfiguration_cubic_coef": recon_cubic_coef,
+            "reconfiguration_gain": reconfiguration_gain,
             "column_correction": column_correction,
         }
 
@@ -620,6 +629,10 @@ def loss_fn(
         (out["F_residual"] / out["F_physics"].detach().clamp_min(1e-8)).square(),
         aux_weight,
     )
+    loss_reconf_poly = weighted_mean(
+        out["reconfiguration_quad_coef"].square() + out["reconfiguration_cubic_coef"].square(),
+        aux_weight,
+    )
 
     loss_leaf = torch.tensor(0.0, device=target.device)
     if y.shape[1] > 5 and torch.isfinite(y[:, 4:5]).any():
@@ -652,6 +665,7 @@ def loss_fn(
         weights["force"] * loss_force
         + weights["cd_prior"] * loss_cd
         + weights["residual"] * loss_residual
+        + weights["reconf_poly"] * loss_reconf_poly
         + weights["leaf_aux"] * loss_leaf
         + weights["column_aux"] * loss_cols
         + weights["shielding_aux"] * loss_shielding
@@ -664,6 +678,7 @@ def loss_fn(
         "force_log": float(loss_force_log.detach().cpu()),
         "cd_prior": float(loss_cd.detach().cpu()),
         "residual": float(loss_residual.detach().cpu()),
+        "reconf_poly": float(loss_reconf_poly.detach().cpu()),
         "leaf_aux": float(loss_leaf.detach().cpu()),
         "column_aux": float(loss_cols.detach().cpu()),
         "shielding_aux": float(loss_shielding.detach().cpu()),
@@ -785,6 +800,9 @@ def save_latent_csv(
                 "shielding_target": shielding_true,
                 "angle_diff_deg": angle_diff_deg,
                 "reconfiguration_factor": float(out["reconfiguration_factor"][i, 0]),
+                "reconfiguration_quad_coef": float(out["reconfiguration_quad_coef"][i, 0]),
+                "reconfiguration_cubic_coef": float(out["reconfiguration_cubic_coef"][i, 0]),
+                "reconfiguration_gain": float(out["reconfiguration_gain"][i, 0]),
                 "column_correction_1": float(col_corr[0]),
                 "column_correction_2": float(col_corr[1]),
                 "column_correction_3": float(col_corr[2]),
@@ -818,6 +836,7 @@ def plot_training_history(run_dir: Path, history: list[dict[str, float]], best_e
     plt.plot(epochs, [row["val_force"] for row in history], label="val force")
     plt.plot(epochs, [row["val_cd_prior"] for row in history], label="val cd prior")
     plt.plot(epochs, [row["val_residual"] for row in history], label="val residual")
+    plt.plot(epochs, [row["val_reconf_poly"] for row in history], label="val reconf poly")
     plt.plot(epochs, [row["val_leaf_aux"] for row in history], label="val leaf aux")
     plt.plot(epochs, [row["val_column_aux"] for row in history], label="val column aux")
     plt.plot(epochs, [row["val_shielding_aux"] for row in history], label="val shielding aux")
@@ -948,6 +967,9 @@ def plot_outputs(
         ("Cd_stem_eff", "Effective stem Cd"),
         ("shielding_coef", "Shielding coefficient"),
         ("reconfiguration_factor", "Reconfiguration factor"),
+        ("reconfiguration_gain", "Reconfiguration gain"),
+        ("reconfiguration_quad_coef", "Reconfiguration quadratic coefficient"),
+        ("reconfiguration_cubic_coef", "Reconfiguration cubic coefficient"),
     ]:
         plt.figure(figsize=(6, 4))
         plt.scatter(data.raw_x[:, 2], out[name][:, 0], c=data.raw_x[:, 0], s=18, alpha=0.85)
@@ -1163,10 +1185,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", default=None, help="Path to pinn_training_data.mat")
     parser.add_argument("--synthetic-data", default=None, help="Optional MATLAB synthetic .mat file")
-    parser.add_argument("--epochs", type=int, default=3000)
-    parser.add_argument("--batch-size", type=int, default=228)
-    parser.add_argument("--lr", type=float, default=1e-3)
-    parser.add_argument("--weight-decay", type=float, default=1e-4)
+    parser.add_argument("--epochs", type=int, default=5000)
+    parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--lr", type=float, default=5e-4)
+    parser.add_argument("--weight-decay", type=float, default=3e-4)
     parser.add_argument("--hidden", type=int, default=128)
     parser.add_argument("--depth", type=int, default=5)
     parser.add_argument("--seed", type=int, default=7)
@@ -1184,11 +1206,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--relative-floor-scale", type=float, default=0.08)
     parser.add_argument("--lambda-cd-prior", type=float, default=0.008)
     parser.add_argument("--lambda-residual", type=float, default=0.01)
-    parser.add_argument("--lambda-leaf-aux", type=float, default=0.035)
-    parser.add_argument("--lambda-column-aux", type=float, default=0.02)
-    parser.add_argument("--lambda-shielding-aux", type=float, default=0.01)
-    parser.add_argument("--synthetic-force-weight", type=float, default=0.35)
-    parser.add_argument("--synthetic-aux-weight", type=float, default=0.5)
+    parser.add_argument("--lambda-reconf-poly", type=float, default=0.002)
+    parser.add_argument("--lambda-leaf-aux", type=float, default=0.02)
+    parser.add_argument("--lambda-column-aux", type=float, default=0.01)
+    parser.add_argument("--lambda-shielding-aux", type=float, default=0.005)
+    parser.add_argument("--synthetic-force-weight", type=float, default=0.2)
+    parser.add_argument("--synthetic-aux-weight", type=float, default=0.3)
     return parser.parse_args()
 
 
@@ -1267,6 +1290,7 @@ def main() -> None:
         "relative_floor": args.relative_floor_scale,
         "cd_prior": args.lambda_cd_prior,
         "residual": args.lambda_residual,
+        "reconf_poly": args.lambda_reconf_poly,
         "leaf_aux": args.lambda_leaf_aux,
         "column_aux": args.lambda_column_aux,
         "shielding_aux": args.lambda_shielding_aux,

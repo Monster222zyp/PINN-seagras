@@ -23,6 +23,7 @@ Cd_stem_eff
 Cd_leaf_eff
 shielding_coef
 reconfiguration_factor
+reconfiguration_gain
 F_stem
 F_leaf
 Fcol_1, Fcol_2, Fcol_3
@@ -234,6 +235,14 @@ reconfiguration_factor =
 column_correction_1 = exp(column_log_range * tanh(z5))
 column_correction_2 = exp(column_log_range * tanh(z6))
 column_correction_3 = exp(column_log_range * tanh(z7))
+
+a2 = softplus(z8)
+a3 = softplus(z9)
+
+reconfiguration_gain =
+    reconfiguration_factor
+    + a2 * reconfiguration_factor^2
+    + a3 * reconfiguration_factor^3
 ```
 
 The force model is:
@@ -247,14 +256,14 @@ F_leaf_col_i =
     q * Cd_leaf_eff * h * L * N_per_column
     * sin(theta_i)^2
     * column_correction_i
-    * reconfiguration_factor
+    * reconfiguration_gain
 
 F_leaf_col_2 = F_leaf_col_2 * shielding_coef
 
 F_leaf = sum_i F_leaf_col_i
 F_physics = F_stem + F_leaf
 
-F_residual = residual_scale * F_physics * tanh(z8)
+F_residual = residual_scale * F_physics * tanh(z10)
 
 F_pred = F_physics + F_residual
 ```
@@ -264,6 +273,8 @@ Important interpretation:
 - `physics learning coefficient` in the plots corresponds to `F_physics`
 - `physics fixed coefficient` in the plots corresponds to the exported MATLAB solver force `F_total_iter`
 - the residual branch is bounded, so the model is encouraged to learn through the physics layer instead of relying entirely on a free black-box correction
+- `reconfiguration_factor` is now the base latent variable
+- `reconfiguration_gain` is the actual factor entering the force equation after first-, second-, and third-order nonlinear combination
 
 Default latent ranges are currently broader than the early versions of this project:
 
@@ -273,6 +284,8 @@ shielding_coef in [0.25, 1.10]
 reconfiguration_factor in [0.02, 1.80]
 column_correction_i in exp(0.8 * tanh(.))
 ```
+
+This higher-order `reconfiguration_gain` is meant to better absorb the nonlinear flexible-beam behavior that is not captured by a single first-order multiplier.
 
 ## 7. Loss Terms
 
@@ -289,6 +302,7 @@ Additional weak regularization terms are used:
 ```text
 Cd prior regularization
 bounded residual regularization
+weak reconfiguration polynomial regularization
 weak leaf-force auxiliary loss
 weak column-force auxiliary loss
 weak shielding auxiliary loss
@@ -301,9 +315,10 @@ Current default regularization weights are intentionally weaker than the earlier
 ```text
 lambda_cd_prior = 0.008
 lambda_residual = 0.01
-lambda_leaf_aux = 0.035
-lambda_column_aux = 0.02
-lambda_shielding_aux = 0.01
+lambda_reconf_poly = 0.002
+lambda_leaf_aux = 0.02
+lambda_column_aux = 0.01
+lambda_shielding_aux = 0.005
 ```
 
 When synthetic data are supplied, the script applies lower per-sample weights to the synthetic rows. Experimental samples still dominate the validation metric and final model selection.
@@ -347,6 +362,9 @@ Cd_leaf_eff_vs_ReCa.png
 shielding_coef_vs_Ca.png
 shielding_coef_vs_angle_diff.png
 reconfiguration_factor_vs_Ca.png
+reconfiguration_gain_vs_Ca.png
+reconfiguration_quad_coef_vs_Ca.png
+reconfiguration_cubic_coef_vs_Ca.png
 physics_decomposition_stack.png
 column_force_share_vs_U.png
 residual_ratio_vs_force.png
@@ -372,6 +390,9 @@ aux_weight
 angle_diff_deg
 shielding_target
 Fcol_1/2/3_true
+reconfiguration_quad_coef
+reconfiguration_cubic_coef
+reconfiguration_gain
 column_correction_1/2/3
 ```
 
@@ -386,7 +407,7 @@ training_curves.png:
 force-loss convergence for train/validation
 
 loss_breakdown.png:
-separate force, Cd prior, residual, leaf/column/shielding auxiliary losses
+separate force, Cd prior, residual, reconfiguration-polynomial, leaf/column/shielding auxiliary losses
 
 force_parity_train_val.png:
 global accuracy and train-vs-validation generalization
@@ -413,7 +434,13 @@ shielding_coef_vs_angle_diff.png:
 whether the learned Cs matches the geometric shielding logic
 
 reconfiguration_factor_vs_Ca.png:
-whether flexibility-driven reconfiguration scales smoothly with Ca
+whether the base reconfiguration latent variable scales smoothly with Ca
+
+reconfiguration_gain_vs_Ca.png:
+whether the final nonlinear reconfiguration factor entering the force law evolves smoothly with Ca
+
+reconfiguration_quad_coef_vs_Ca.png and reconfiguration_cubic_coef_vs_Ca.png:
+whether the learned higher-order nonlinear coefficients activate mainly in the strongly flexible regime
 
 physics_decomposition_stack.png:
 mean decomposition into stem force, leaf force, physics learning coefficient sum, and total prediction
