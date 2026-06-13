@@ -201,6 +201,8 @@ python train_latent_physics_pinn.py ^
   --synthetic-aux-weight 0.50
 ```
 
+python train_latent_physics_pinn.py   --epochs 3000   --synthetic-data pinn_training_data_synth.mat   --synthetic-force-weight 0.35   --synthetic-aux-weight 0.50
+
 Current split rule:
 
 - experimental data are randomly shuffled and split by `--val-ratio`

@@ -6,3 +6,4 @@ echo.
 echo If creation succeeded, activate with:
 echo conda activate pinn-seagrass
 
+pause
