@@ -1,0 +1,59 @@
+Run directory: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260608-225723__latent_physics
+Data file: pinn_training_data.mat
+Synthetic data file: pinn_training_data_synth.mat
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+[0001/5000] train_force=0.5199 val_force=0.1415
+[0100/5000] train_force=0.02557 val_force=0.03058
+[0200/5000] train_force=0.01891 val_force=0.02983
+[0300/5000] train_force=0.01186 val_force=0.03276
+[0400/5000] train_force=0.01787 val_force=0.0325
+[0500/5000] train_force=0.01079 val_force=0.02681
+[0600/5000] train_force=0.007983 val_force=0.02715
+[0700/5000] train_force=0.006093 val_force=0.02562
+[0800/5000] train_force=0.006215 val_force=0.02666
+[0900/5000] train_force=0.005651 val_force=0.02717
+[1000/5000] train_force=0.005538 val_force=0.0269
+[1100/5000] train_force=0.005045 val_force=0.02791
+[1200/5000] train_force=0.004691 val_force=0.02794
+[1300/5000] train_force=0.004784 val_force=0.02764
+[1400/5000] train_force=0.004584 val_force=0.02793
+[1500/5000] train_force=0.004263 val_force=0.02769
+[1600/5000] train_force=0.004414 val_force=0.02802
+[1700/5000] train_force=0.00413 val_force=0.028
+[1800/5000] train_force=0.004152 val_force=0.02822
+[1900/5000] train_force=0.004406 val_force=0.02812
+[2000/5000] train_force=0.004271 val_force=0.02822
+[2100/5000] train_force=0.004063 val_force=0.02826
+[2200/5000] train_force=0.003921 val_force=0.02848
+[2300/5000] train_force=0.003698 val_force=0.02806
+[2400/5000] train_force=0.003953 val_force=0.02846
+[2500/5000] train_force=0.003875 val_force=0.02872
+[2600/5000] train_force=0.004357 val_force=0.02881
+[2700/5000] train_force=0.003889 val_force=0.02876
+[2800/5000] train_force=0.004387 val_force=0.02882
+[2900/5000] train_force=0.003602 val_force=0.02909
+[3000/5000] train_force=0.003761 val_force=0.02897
+[3100/5000] train_force=0.003956 val_force=0.02913
+[3200/5000] train_force=0.004208 val_force=0.02938
+[3300/5000] train_force=0.003509 val_force=0.02936
+[3400/5000] train_force=0.003427 val_force=0.02949
+[3500/5000] train_force=0.003482 val_force=0.02976
+[3600/5000] train_force=0.003725 val_force=0.03016
+[3700/5000] train_force=0.00343 val_force=0.02999
+[3800/5000] train_force=0.003514 val_force=0.03038
+[3900/5000] train_force=0.00327 val_force=0.03047
+[4000/5000] train_force=0.003333 val_force=0.03044
+[4100/5000] train_force=0.003566 val_force=0.03041
+[4200/5000] train_force=0.003478 val_force=0.03078
+[4300/5000] train_force=0.003278 val_force=0.03035
+[4400/5000] train_force=0.003313 val_force=0.03043
+[4500/5000] train_force=0.003755 val_force=0.03051
+[4600/5000] train_force=0.003024 val_force=0.03071
+[4700/5000] train_force=0.003007 val_force=0.03046
+[4800/5000] train_force=0.003222 val_force=0.03098
+[4900/5000] train_force=0.003219 val_force=0.03072
+[5000/5000] train_force=0.00304 val_force=0.03116
+Saved latent CSV: C:\Users\admin\deepxde\myproject\runs_pinn_drag\20260608-225723__latent_physics\latent_predictions.csv
+Metrics: {'all': {'rmse': 0.057814788073301315, 'mae': 0.04215722158551216, 'r2': 0.9940005540847778}, 'train': {'rmse': 0.05290688946843147, 'mae': 0.03812185302376747, 'r2': 0.995339572429657}, 'val': {'rmse': 0.07051794975996017, 'mae': 0.05426335707306862, 'r2': 0.9883464574813843}, 'synthetic': {'rmse': 0.060283955186605453, 'mae': 0.034949563443660736, 'r2': 0.993462324142456}, 'experimental_sample_count': 228, 'synthetic_sample_count': 500, 'mean_residual_ratio': 0.1348714252051554, 'best_epoch': 432, 'best_val_force': 0.0238287765532732}
+Training complete.
