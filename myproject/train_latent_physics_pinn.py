@@ -181,13 +181,50 @@ def load_new_v73_mat(mat_path: Path) -> LoadedData:
             if "aux_weight" in group
             else np.ones(x.shape[0], dtype=np.float32)
         )
+        stored_config_index = (
+            np.asarray(group["config_index"][()], dtype=np.int64).reshape(-1)
+            if "config_index" in group
+            else None
+        )
+        stored_velocity_index = (
+            np.asarray(group["velocity_index"][()], dtype=np.int64).reshape(-1)
+            if "velocity_index" in group
+            else None
+        )
+        stored_config_names = (
+            json.loads(group.attrs["config_names_json"])
+            if "config_names_json" in group.attrs
+            else None
+        )
 
     n = x.shape[0]
-    if n % VELOCITY_COUNT == 0:
+    row_counts = {
+        "Y_matrix": y.shape[0],
+        "source_id": len(source_id),
+        "sample_weight": len(sample_weight),
+        "aux_weight": len(aux_weight),
+    }
+    mismatched = {name: count for name, count in row_counts.items() if count != n}
+    if mismatched:
+        raise ValueError(f"HDF5 row counts do not match X_matrix ({n}): {mismatched}")
+    if stored_config_index is not None or stored_velocity_index is not None:
+        if stored_config_index is None or stored_velocity_index is None:
+            raise ValueError("config_index and velocity_index must be stored together")
+        if len(stored_config_index) != n or len(stored_velocity_index) != n:
+            raise ValueError("Stored configuration metadata length does not match X_matrix")
+        config_index = stored_config_index
+        velocity_index = stored_velocity_index
+        n_cfg = int(np.max(config_index)) + 1 if n else 0
+        config_names = stored_config_names or [f"config_{i:04d}" for i in range(n_cfg)]
+        if len(config_names) < n_cfg:
+            raise ValueError("config_names_json does not cover every config_index")
+    elif n % VELOCITY_COUNT == 0:
         n_cfg = n // VELOCITY_COUNT
         config_index = np.repeat(np.arange(n_cfg), VELOCITY_COUNT).astype(np.int64)
         velocity_index = np.tile(np.arange(VELOCITY_COUNT), n_cfg).astype(np.int64)
-        config_names = CONFIG_NAMES[:n_cfg]
+        config_names = CONFIG_NAMES[:n_cfg] + [
+            f"config_{i:04d}" for i in range(len(CONFIG_NAMES), n_cfg)
+        ]
     else:
         # Synthetic random samples do not form a regular 19-velocity grid.
         n_cfg = n
@@ -411,10 +448,12 @@ def split_experimental_random(
         raise ValueError(f"val_ratio must be in (0, 1), got {val_ratio}")
     experimental_idx = np.where(data.source_id == 0)[0]
     synthetic_idx = np.where(data.source_id != 0)[0]
+    if len(experimental_idx) < 2:
+        raise ValueError("At least two experimental rows are required for train/validation split")
     rng = np.random.default_rng(seed)
     shuffled = experimental_idx.copy()
     rng.shuffle(shuffled)
-    n_val = max(1, int(round(len(shuffled) * val_ratio)))
+    n_val = min(len(shuffled) - 1, max(1, int(round(len(shuffled) * val_ratio))))
     val_idx = np.sort(shuffled[:n_val]).astype(np.int64)
     exp_train_idx = np.sort(shuffled[n_val:]).astype(np.int64)
     train_idx = np.concatenate([exp_train_idx, synthetic_idx.astype(np.int64)])
@@ -561,6 +600,13 @@ def weighted_mean(value: torch.Tensor, weight: torch.Tensor | None = None) -> to
     return torch.sum(value * w) / torch.clamp_min(torch.sum(w), 1e-8)
 
 
+def sample_weighted_mean(value: torch.Tensor, weight: torch.Tensor | None = None) -> torch.Tensor:
+    if weight is None:
+        return torch.mean(value)
+    w = weight.expand_as(value)
+    return torch.mean(value * w)
+
+
 def masked_weighted_mean(
     value: torch.Tensor,
     mask: torch.Tensor,
@@ -579,7 +625,7 @@ def normalized_mse(
     scale: torch.Tensor,
     weight: torch.Tensor | None = None,
 ) -> torch.Tensor:
-    return weighted_mean(((pred - target) / scale.clamp_min(1e-8)).square(), weight)
+    return sample_weighted_mean(((pred - target) / scale.clamp_min(1e-8)).square(), weight)
 
 
 def relative_mse(
@@ -588,13 +634,13 @@ def relative_mse(
     floor: torch.Tensor,
     weight: torch.Tensor | None = None,
 ) -> torch.Tensor:
-    return weighted_mean(((pred - target) / torch.maximum(target.abs(), floor)).square(), weight)
+    return sample_weighted_mean(((pred - target) / torch.maximum(target.abs(), floor)).square(), weight)
 
 
 def log_mse(pred: torch.Tensor, target: torch.Tensor, weight: torch.Tensor | None = None) -> torch.Tensor:
     pred_safe = pred.clamp_min(0.0)
     target_safe = target.clamp_min(0.0)
-    return weighted_mean((torch.log1p(pred_safe) - torch.log1p(target_safe)).square(), weight)
+    return sample_weighted_mean((torch.log1p(pred_safe) - torch.log1p(target_safe)).square(), weight)
 
 
 def loss_fn(
@@ -687,8 +733,8 @@ def loss_fn(
 
 
 def make_run_dir(script_dir: Path) -> Path:
-    runs_root = script_dir / "runs_pinn_drag"
-    runs_root.mkdir(exist_ok=True)
+    runs_root = script_dir / "runs" / "pinn_drag"
+    runs_root.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir = runs_root / f"{ts}__latent_physics"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -717,8 +763,12 @@ def run_epoch(
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
                 optimizer.step()
-        rows.append(logs)
-    return {key: float(np.mean([row[key] for row in rows])) for key in rows[0]}
+        rows.append((logs, int(batch["force"].shape[0])))
+    total_samples = sum(batch_size for _, batch_size in rows)
+    return {
+        key: float(sum(logs[key] * batch_size for logs, batch_size in rows) / total_samples)
+        for key in rows[0][0]
+    }
 
 
 def predict_all(
@@ -1219,7 +1269,7 @@ def main() -> None:
     args = parse_args()
     set_seed(args.seed)
     script_dir = Path(__file__).resolve().parent
-    mat_path = Path(args.data) if args.data else script_dir / "pinn_training_data.mat"
+    mat_path = Path(args.data) if args.data else script_dir / "data" / "pinn_training_data.mat"
     synthetic_path = Path(args.synthetic_data) if args.synthetic_data else None
     run_dir = make_run_dir(script_dir)
     sys.stdout = Tee(sys.stdout, run_dir / "console.log")

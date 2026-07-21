@@ -1,55 +1,103 @@
-# DeepXDE 使用 .mat 文件训练模型说明
+# Seagrass Latent-Physics Project
 
-本项目展示如何使用 DeepXDE 框架加载和使用 .mat 文件中的实验数据来训练物理信息神经网络(PINN)模型。
+本目录是柔性海草/条带阻力预测项目的当前工程入口。当前主线使用实验数据、MATLAB 物理求解结果和可解释 latent 变量训练 physics-structured neural surrogate。
 
-## 文件说明
+## 当前入口
 
-- `my_euler_beam.py`: 原始的欧拉梁方程求解示例，使用解析解作为参考
-- `my_euler_beam_with_mat_data.py`: 展示如何导入 .mat 文件的实验数据来训练欧拉梁模型
+- 单次训练脚本：`train_latent_physics_pinn.py`
+- 迭代自训练脚本：`train_iterative_self_training.py`（实验性路线）
+- 实验数据：`data/pinn_training_data.mat`
+- 可选合成数据：`data/pinn_training_data_synth.mat`
+- 训练输出：`runs/pinn_drag/`
+- MATLAB 物理与导出代码：`matlab/`
 
-## 如何使用
+## 文档
 
-1. 准备一个包含实验数据的 .mat 文件，确保其中包含:
-   - 'x': 位置数据
-   - 'y': 位移数据
+建议按以下顺序阅读：
 
-2. 修改 `my_euler_beam_with_mat_data.py` 中的 `mat_file_path` 变量，指向你的 .mat 文件:
-   ```python
-   mat_file_path = "path/to/your/experimental_data.mat"  # 修改为你的.mat文件路径
-   ```
+1. [TRAINING_ENGINEERING.md](docs/TRAINING_ENGINEERING.md)：数据契约、模型结构、训练命令和结果登记。
+2. [RESEARCH_IDEA.md](docs/RESEARCH_IDEA.md)：科学问题、论文 idea、假设和待验证实验。
+3. [FILE_INVENTORY.md](docs/FILE_INVENTORY.md)：各文件职责、状态及 legacy 边界。
+4. [PINN_DATA_README.md](docs/PINN_DATA_README.md)：MATLAB v7.3/HDF5 字段定义。
+5. [README_LATENT_PHYSICS_PINN.md](docs/README_LATENT_PHYSICS_PINN.md)：latent-physics 模型技术说明。
 
-3. 如果你的 .mat 文件中的变量名不是 'x' 和 'y'，请修改 `load_experimental_data` 函数中的对应部分:
-   ```python
-   # 根据你的.mat文件结构调整以下字段名
-   x = data["your_x_variable_name"].flatten()[:, None]
-   y = data["your_y_variable_name"].flatten()[:, None]
-   ```
+## 目录结构
 
-4. 运行脚本:
-   ```
-   python my_euler_beam_with_mat_data.py
-   ```
+```text
+myproject/
+├── README.md
+├── train_latent_physics_pinn.py
+├── train_iterative_self_training.py
+├── tests/
+├── environment.yml
+├── requirements_latent_physics.txt
+├── data/                 # 实验、synthetic 和派生 .mat 数据
+├── docs/                 # 当前文档
+│   └── legacy/           # 历史说明文档
+├── matlab/               # 物理求解、配置和数据导出
+├── legacy/python/        # 旧 force model、简化 PINN 和辅助脚本
+├── scripts/              # Conda 环境辅助脚本
+└── runs/
+    ├── pinn_drag/        # 当前 latent-physics 和历史 PINN 结果
+    └── force_model/      # 旧 force-model 结果
+```
 
-## 输出文件
+## 快速运行
 
-- `prediction_results.dat`: 包含预测点和预测值的数据
-- `comparison.png`: 可视化图，展示实验数据和PINN预测的对比
-- `loss.dat` 和其他训练日志文件
+在 `myproject/` 目录中创建或激活环境：
 
-## 注意事项
+```bash
+conda env create -f environment.yml
+conda activate pinn-seagrass
+```
 
-1. 确保你的 .mat 文件中的数据格式正确，如果遇到加载问题，可以使用以下代码检查数据结构:
-   ```python
-   from scipy.io import loadmat
-   data = loadmat("your_file.mat")
-   print(data.keys())  # 查看所有变量名
-   print(data["x"].shape)  # 查看数据形状
-   ```
+仅使用实验数据：
 
-2. 如果遇到linter警告，比如关于FNN的警告，可以忽略它们。这些警告是由于DeepXDE的动态导入机制引起的，不会影响代码的实际运行。
+```bash
+python train_latent_physics_pinn.py \
+  --data data/pinn_training_data.mat \
+  --epochs 5000 \
+  --batch-size 128
+```
 
-3. 如果需要调整模型参数，可以修改:
-   - 神经网络结构: `layer_size = [1, 20, 20, 20, 1]`
-   - 激活函数: `activation = "tanh"`
-   - 优化器和学习率: `model.compile("adam", lr=0.001)`
-   - 迭代次数: `model.train(iterations=10000)` 
+实验数据加 synthetic 数据：
+
+```bash
+python train_latent_physics_pinn.py \
+  --data data/pinn_training_data.mat \
+  --synthetic-data data/pinn_training_data_synth.mat \
+  --epochs 5000 \
+  --batch-size 128
+```
+
+不传 `--data` 时，当前脚本默认读取 `data/pinn_training_data.mat`。synthetic 数据不会默认启用，必须显式传入 `--synthetic-data`。
+
+三轮实验性迭代自训练：
+
+```bash
+python train_iterative_self_training.py \
+  --data data/pinn_training_data.mat \
+  --cycles 3 \
+  --pretrain-epochs 1000 \
+  --posttrain-epochs 500 \
+  --generated-samples-per-cycle 80
+```
+
+该入口先仅用实验训练集预训练，再由当前代理在每个实验配置各自的训练速度域内生成、过滤并混合低权重伪标签。默认 `incremental` 表示继承模型权重，但每轮重新创建 optimizer 和 scheduler；它不是完整训练状态续跑。固定实验验证集不参与训练，但会用于 epoch 选择和每轮接受/回滚，因此不能作为论文最终独立测试集。完整参数、checkpoint、HDF5 伪数据和产物语义见 [TRAINING_ENGINEERING.md](docs/TRAINING_ENGINEERING.md#12-iterative-self-training-experimental-route)。
+
+## MATLAB
+
+MATLAB 主流程位于 `matlab/`：
+
+```text
+main_clean.m
+  -> predictDragForces.m
+  -> calculate_drag_coefficient_v2.m
+  -> exportPINNTrainingData.m
+```
+
+`matlab/main_export_pinn_data.m` 用于生成 synthetic 数据，并将导出文件写入 `data/`。
+
+## Legacy 边界
+
+`legacy/python/` 和 `docs/legacy/` 保留旧模型、教学示例和历史说明。它们用于追溯或 baseline 对比，不是当前 17 输入、27 目标 latent-physics 路线。旧运行结果保存在 `runs/force_model/` 或 `runs/pinn_drag/`，目录时间和 `LATEST.txt` 不代表最佳模型。

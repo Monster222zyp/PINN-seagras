@@ -4,7 +4,7 @@ This README documents the new force-prediction model in:
 
 - `train_latent_physics_pinn.py`
 
-The model is designed for the new `pinn_training_data.mat` export described in:
+The model is designed for the new `data/pinn_training_data.mat` export described in:
 
 - `PINN_DATA_README.md`
 
@@ -48,7 +48,7 @@ If future exports include full spatial fields such as `w(x)`, `theta(x)`, or `q(
 Preferred input file:
 
 ```text
-pinn_training_data.mat
+data/pinn_training_data.mat
 ```
 
 The new MATLAB export is v7.3/HDF5 based. Therefore the Python loader uses `h5py`, not only `scipy.io.loadmat`.
@@ -68,14 +68,14 @@ The script also contains a fallback for the older 11-column `X_matrix` format, b
 For multi-fidelity training, keep two files:
 
 ```text
-pinn_training_data.mat
-pinn_training_data_synth.mat
+data/pinn_training_data.mat
+data/pinn_training_data_synth.mat
 ```
 
 Recommended meaning:
 
-- `pinn_training_data.mat`: experimental-led dataset exported from the real measurements and MATLAB post-processing
-- `pinn_training_data_synth.mat`: solver-generated synthetic dataset exported by `exportSyntheticPINNTrainingData.m`
+- `data/pinn_training_data.mat`: experimental-led dataset exported from the real measurements and MATLAB post-processing
+- `data/pinn_training_data_synth.mat`: solver-generated synthetic dataset exported by `exportSyntheticPINNTrainingData.m`
 
 Validation remains experimental-only. Synthetic samples are allowed in training, but they are not used to define the main validation metric.
 
@@ -196,7 +196,7 @@ Multi-fidelity run:
 ```bash
 python train_latent_physics_pinn.py ^
   --epochs 3000 ^
-  --synthetic-data pinn_training_data_synth.mat ^
+  --synthetic-data data/pinn_training_data_synth.mat ^
   --synthetic-force-weight 0.35 ^
   --synthetic-aux-weight 0.50
 ```
@@ -328,13 +328,13 @@ When synthetic data are supplied, the script applies lower per-sample weights to
 Each run is saved to:
 
 ```text
-runs_pinn_drag/<timestamp>__latent_physics/
+runs/pinn_drag/<timestamp>__latent_physics/
 ```
 
 The latest run name is written to:
 
 ```text
-runs_pinn_drag/LATEST.txt
+runs/pinn_drag/LATEST.txt
 ```
 
 Main output files:
