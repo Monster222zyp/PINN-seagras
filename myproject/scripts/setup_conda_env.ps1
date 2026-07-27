@@ -11,7 +11,7 @@ if (-not (Test-Path -LiteralPath $condaHook)) {
 
 . $condaHook
 
-conda env create -f environment.yml
+conda env create -f (Join-Path $PSScriptRoot "..\environment.yml")
 conda activate pinn-seagrass
 
 Write-Host ""

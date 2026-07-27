@@ -1,0 +1,150 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training
+Experimental data: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data_synth.mat
+  synthetic: 80 rows, force_weight=0.2, aux_weight=0.3
+Pretrain data: experimental=228, synthetic=80, total=308
+Device: cpu
+Fixed split: experimental train=171, experimental validation=57
+cycle=00 epoch=0001/4000 train_force=3.5418 val_force=0.73795
+cycle=00 epoch=0400/4000 train_force=0.0067111 val_force=0.01954
+cycle=00 epoch=0800/4000 train_force=0.0034841 val_force=0.01922
+cycle=00 epoch=1200/4000 train_force=0.0031018 val_force=0.019942
+cycle=00 epoch=1600/4000 train_force=0.002986 val_force=0.020336
+cycle=00 epoch=2000/4000 train_force=0.0028247 val_force=0.020654
+cycle=00 epoch=2400/4000 train_force=0.0025816 val_force=0.020858
+cycle=00 epoch=2800/4000 train_force=0.0024525 val_force=0.021459
+cycle=00 epoch=3200/4000 train_force=0.0022858 val_force=0.020851
+cycle=00 epoch=3600/4000 train_force=0.0021266 val_force=0.021039
+cycle=00 epoch=4000/4000 train_force=0.002036 val_force=0.020275
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_00_pretrain/latent_predictions.csv
+
+Starting post-training cycle 1/8
+Candidates: pool=320, filter_pass=296, selected=80
+cycle=01 epoch=0001/2000 train_force=0.1184 val_force=0.056777
+cycle=01 epoch=0200/2000 train_force=0.0033872 val_force=0.01929
+cycle=01 epoch=0400/2000 train_force=0.0027759 val_force=0.027158
+cycle=01 epoch=0600/2000 train_force=0.0020191 val_force=0.033184
+cycle=01 epoch=0800/2000 train_force=0.0019134 val_force=0.034954
+cycle=01 epoch=1000/2000 train_force=0.0018567 val_force=0.03537
+cycle=01 epoch=1200/2000 train_force=0.0018153 val_force=0.035362
+cycle=01 epoch=1400/2000 train_force=0.001788 val_force=0.035201
+cycle=01 epoch=1600/2000 train_force=0.0017494 val_force=0.034818
+cycle=01 epoch=1800/2000 train_force=0.0017006 val_force=0.034289
+cycle=01 epoch=2000/2000 train_force=0.0016635 val_force=0.034034
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_01_posttrain/latent_predictions.csv
+Cycle 1 accepted: validation RMSE=0.0630734
+
+Starting post-training cycle 2/8
+Candidates: pool=320, filter_pass=317, selected=80
+cycle=02 epoch=0001/2000 train_force=0.093638 val_force=0.045566
+cycle=02 epoch=0200/2000 train_force=0.0035902 val_force=0.020727
+cycle=02 epoch=0400/2000 train_force=0.0019315 val_force=0.021068
+cycle=02 epoch=0600/2000 train_force=0.0016625 val_force=0.022713
+cycle=02 epoch=0800/2000 train_force=0.0014508 val_force=0.024562
+cycle=02 epoch=1000/2000 train_force=0.0013842 val_force=0.024499
+cycle=02 epoch=1200/2000 train_force=0.0013636 val_force=0.024632
+cycle=02 epoch=1400/2000 train_force=0.0013487 val_force=0.024599
+cycle=02 epoch=1600/2000 train_force=0.0013341 val_force=0.024501
+cycle=02 epoch=1800/2000 train_force=0.0013215 val_force=0.024448
+cycle=02 epoch=2000/2000 train_force=0.001296 val_force=0.024346
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_02_posttrain/latent_predictions.csv
+Cycle 2 accepted: validation RMSE=0.0637943
+
+Starting post-training cycle 3/8
+Candidates: pool=320, filter_pass=308, selected=80
+cycle=03 epoch=0001/2000 train_force=0.10022 val_force=0.053976
+cycle=03 epoch=0200/2000 train_force=0.0022081 val_force=0.019617
+cycle=03 epoch=0400/2000 train_force=0.0014512 val_force=0.02109
+cycle=03 epoch=0600/2000 train_force=0.0011577 val_force=0.020273
+cycle=03 epoch=0800/2000 train_force=0.0010634 val_force=0.020212
+cycle=03 epoch=1000/2000 train_force=0.0010302 val_force=0.020286
+cycle=03 epoch=1200/2000 train_force=0.0010142 val_force=0.020348
+cycle=03 epoch=1400/2000 train_force=0.0010021 val_force=0.020377
+cycle=03 epoch=1600/2000 train_force=0.00098674 val_force=0.020482
+cycle=03 epoch=1800/2000 train_force=0.00097096 val_force=0.0205
+cycle=03 epoch=2000/2000 train_force=0.00095631 val_force=0.020577
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_03_posttrain/latent_predictions.csv
+Cycle 3 rolled back: validation RMSE=0.0640658 > allowed 0.0638931
+
+Starting post-training cycle 4/8
+Candidates: pool=320, filter_pass=310, selected=80
+cycle=04 epoch=0001/2000 train_force=0.099688 val_force=0.041196
+cycle=04 epoch=0200/2000 train_force=0.0018753 val_force=0.023739
+cycle=04 epoch=0400/2000 train_force=0.0015032 val_force=0.025836
+cycle=04 epoch=0600/2000 train_force=0.001215 val_force=0.028598
+cycle=04 epoch=0800/2000 train_force=0.0011352 val_force=0.028633
+cycle=04 epoch=1000/2000 train_force=0.0011129 val_force=0.028741
+cycle=04 epoch=1200/2000 train_force=0.0011063 val_force=0.0288
+cycle=04 epoch=1400/2000 train_force=0.0010772 val_force=0.028677
+cycle=04 epoch=1600/2000 train_force=0.0010591 val_force=0.028527
+cycle=04 epoch=1800/2000 train_force=0.0010451 val_force=0.028325
+cycle=04 epoch=2000/2000 train_force=0.0010271 val_force=0.028035
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_04_posttrain/latent_predictions.csv
+Cycle 4 rolled back: validation RMSE=0.0649105 > allowed 0.0638931
+
+Starting post-training cycle 5/8
+Candidates: pool=320, filter_pass=310, selected=80
+cycle=05 epoch=0001/2000 train_force=0.04592 val_force=0.048211
+cycle=05 epoch=0200/2000 train_force=0.0019152 val_force=0.021186
+cycle=05 epoch=0400/2000 train_force=0.0016137 val_force=0.022156
+cycle=05 epoch=0600/2000 train_force=0.0013974 val_force=0.024654
+cycle=05 epoch=0800/2000 train_force=0.0013226 val_force=0.025306
+cycle=05 epoch=1000/2000 train_force=0.0012805 val_force=0.025525
+cycle=05 epoch=1200/2000 train_force=0.0012497 val_force=0.025693
+cycle=05 epoch=1400/2000 train_force=0.0012231 val_force=0.025859
+cycle=05 epoch=1600/2000 train_force=0.0011983 val_force=0.026031
+cycle=05 epoch=1800/2000 train_force=0.0011796 val_force=0.025994
+cycle=05 epoch=2000/2000 train_force=0.0011574 val_force=0.026235
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_05_posttrain/latent_predictions.csv
+Cycle 5 rolled back: validation RMSE=0.0640139 > allowed 0.0638931
+
+Starting post-training cycle 6/8
+Candidates: pool=320, filter_pass=310, selected=80
+cycle=06 epoch=0001/2000 train_force=0.10124 val_force=0.030939
+cycle=06 epoch=0200/2000 train_force=0.0022129 val_force=0.020736
+cycle=06 epoch=0400/2000 train_force=0.0014045 val_force=0.020956
+cycle=06 epoch=0600/2000 train_force=0.0011219 val_force=0.023255
+cycle=06 epoch=0800/2000 train_force=0.0010314 val_force=0.023363
+cycle=06 epoch=1000/2000 train_force=0.00094598 val_force=0.023831
+cycle=06 epoch=1200/2000 train_force=0.00092539 val_force=0.023894
+cycle=06 epoch=1400/2000 train_force=0.00091332 val_force=0.023923
+cycle=06 epoch=1600/2000 train_force=0.00089947 val_force=0.023921
+cycle=06 epoch=1800/2000 train_force=0.00089213 val_force=0.023986
+cycle=06 epoch=2000/2000 train_force=0.00086493 val_force=0.024034
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_06_posttrain/latent_predictions.csv
+Cycle 6 accepted: validation RMSE=0.0625074
+
+Starting post-training cycle 7/8
+Candidates: pool=320, filter_pass=307, selected=80
+cycle=07 epoch=0001/2000 train_force=0.035443 val_force=0.026315
+cycle=07 epoch=0200/2000 train_force=0.0019944 val_force=0.030141
+cycle=07 epoch=0400/2000 train_force=0.0013658 val_force=0.019283
+cycle=07 epoch=0600/2000 train_force=0.00083267 val_force=0.02164
+cycle=07 epoch=0800/2000 train_force=0.00074123 val_force=0.022097
+cycle=07 epoch=1000/2000 train_force=0.0006677 val_force=0.022072
+cycle=07 epoch=1200/2000 train_force=0.00064885 val_force=0.022002
+cycle=07 epoch=1400/2000 train_force=0.00063776 val_force=0.021962
+cycle=07 epoch=1600/2000 train_force=0.00062927 val_force=0.021907
+cycle=07 epoch=1800/2000 train_force=0.00062081 val_force=0.021895
+cycle=07 epoch=2000/2000 train_force=0.00060986 val_force=0.021879
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_07_posttrain/latent_predictions.csv
+Cycle 7 accepted: validation RMSE=0.0624117
+
+Starting post-training cycle 8/8
+Candidates: pool=320, filter_pass=309, selected=80
+cycle=08 epoch=0001/2000 train_force=0.038045 val_force=0.022787
+cycle=08 epoch=0200/2000 train_force=0.0011078 val_force=0.028956
+cycle=08 epoch=0400/2000 train_force=0.00076029 val_force=0.023048
+cycle=08 epoch=0600/2000 train_force=0.0007006 val_force=0.022891
+cycle=08 epoch=0800/2000 train_force=0.00065907 val_force=0.022297
+cycle=08 epoch=1000/2000 train_force=0.00063689 val_force=0.022004
+cycle=08 epoch=1200/2000 train_force=0.0006227 val_force=0.021768
+cycle=08 epoch=1400/2000 train_force=0.00061237 val_force=0.021558
+cycle=08 epoch=1600/2000 train_force=0.0005999 val_force=0.021291
+cycle=08 epoch=1800/2000 train_force=0.00059348 val_force=0.021099
+cycle=08 epoch=2000/2000 train_force=0.00058424 val_force=0.020986
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/cycle_08_posttrain/latent_predictions.csv
+Cycle 8 rolled back: validation RMSE=0.066225 > allowed 0.0636599
+
+Best fixed-validation RMSE: 0.0624117
+Final model: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-134051__iterative_self_training/final_model.pt

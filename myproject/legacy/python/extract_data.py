@@ -2,6 +2,7 @@
 """
 提取实验数据中的输入和输出
 """
+import os
 import config  # 导入配置文件设置环境
 import numpy as np
 from scipy.io import loadmat
@@ -102,7 +103,8 @@ def extract_data_from_mat(file_path):
         return None
 
 if __name__ == "__main__":
-    res = extract_data_from_mat("pinn_training_data.mat")
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    res = extract_data_from_mat(os.path.join(project_dir, "data", "pinn_training_data.mat"))
     
     if res is not None:
         print("\n=== 数据提取完成 ===")

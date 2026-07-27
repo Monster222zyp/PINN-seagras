@@ -1,0 +1,294 @@
+[
+  {
+    "cycle_id": 0,
+    "stage": "pretrain",
+    "accepted_for_next_cycle": true,
+    "experimental_validation": {
+      "rmse": 0.0635647252202034,
+      "mae": 0.05043497309088707,
+      "r2": 0.990531325340271
+    },
+    "pseudo_memory_samples": 0,
+    "checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_00_pretrain/model.pt"
+  },
+  {
+    "cycle_id": 1,
+    "stage": "posttrain",
+    "status": "rolled_back_validation_degradation",
+    "accepted_for_next_cycle": false,
+    "candidate_summary": {
+      "candidate_count": 320,
+      "filter_pass_count": 320,
+      "selected_count": 80,
+      "rejection_counts": {
+        "accepted": 80,
+        "valid_not_selected": 240
+      },
+      "residual_ratio": {
+        "mean": 0.14170515537261963,
+        "min": 0.001843056408688426,
+        "max": 0.19173087179660797,
+        "p95": 0.1909894496202469
+      },
+      "confidence_score": {
+        "mean": 0.5075720548629761,
+        "min": 0.27255356311798096,
+        "max": 0.9894952774047852
+      }
+    },
+    "experimental_validation": {
+      "rmse": 0.06559839099645615,
+      "mae": 0.05110995098948479,
+      "r2": 0.9899157285690308
+    },
+    "previous_validation_rmse": 0.0635647252202034,
+    "validation_acceptance_threshold": 0.06483601972460747,
+    "pseudo_memory_samples": 0,
+    "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_01_posttrain/rejected_model.pt"
+  },
+  {
+    "cycle_id": 2,
+    "stage": "posttrain",
+    "status": "rolled_back_validation_degradation",
+    "accepted_for_next_cycle": false,
+    "candidate_summary": {
+      "candidate_count": 320,
+      "filter_pass_count": 320,
+      "selected_count": 80,
+      "rejection_counts": {
+        "accepted": 80,
+        "valid_not_selected": 240
+      },
+      "residual_ratio": {
+        "mean": 0.1420496255159378,
+        "min": 0.00034846237394958735,
+        "max": 0.19338859617710114,
+        "p95": 0.19095544517040253
+      },
+      "confidence_score": {
+        "mean": 0.505996823310852,
+        "min": 0.28497520089149475,
+        "max": 0.9982591867446899
+      }
+    },
+    "experimental_validation": {
+      "rmse": 0.06605267524719238,
+      "mae": 0.05342516303062439,
+      "r2": 0.9897755980491638
+    },
+    "previous_validation_rmse": 0.0635647252202034,
+    "validation_acceptance_threshold": 0.06483601972460747,
+    "pseudo_memory_samples": 0,
+    "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_02_posttrain/rejected_model.pt"
+  },
+  {
+    "cycle_id": 3,
+    "stage": "posttrain",
+    "status": "rolled_back_validation_degradation",
+    "accepted_for_next_cycle": false,
+    "candidate_summary": {
+      "candidate_count": 320,
+      "filter_pass_count": 320,
+      "selected_count": 80,
+      "rejection_counts": {
+        "accepted": 80,
+        "valid_not_selected": 240
+      },
+      "residual_ratio": {
+        "mean": 0.14195616543293,
+        "min": 0.0038532346952706575,
+        "max": 0.1917242407798767,
+        "p95": 0.1908000260591507
+      },
+      "confidence_score": {
+        "mean": 0.5064934492111206,
+        "min": 0.2906282842159271,
+        "max": 0.9809182286262512
+      }
+    },
+    "experimental_validation": {
+      "rmse": 0.06619711220264435,
+      "mae": 0.051455654203891754,
+      "r2": 0.9897308349609375
+    },
+    "previous_validation_rmse": 0.0635647252202034,
+    "validation_acceptance_threshold": 0.06483601972460747,
+    "pseudo_memory_samples": 0,
+    "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_03_posttrain/rejected_model.pt"
+  },
+  {
+    "cycle_id": 4,
+    "stage": "posttrain",
+    "status": "rolled_back_validation_degradation",
+    "accepted_for_next_cycle": false,
+    "candidate_summary": {
+      "candidate_count": 320,
+      "filter_pass_count": 320,
+      "selected_count": 80,
+      "rejection_counts": {
+        "accepted": 80,
+        "valid_not_selected": 240
+      },
+      "residual_ratio": {
+        "mean": 0.14184483885765076,
+        "min": 0.001465688575990498,
+        "max": 0.19173233211040497,
+        "p95": 0.19092924892902374
+      },
+      "confidence_score": {
+        "mean": 0.5073260068893433,
+        "min": 0.33741891384124756,
+        "max": 0.9926983714103699
+      }
+    },
+    "experimental_validation": {
+      "rmse": 0.06637463718652725,
+      "mae": 0.05316605418920517,
+      "r2": 0.9896756410598755
+    },
+    "previous_validation_rmse": 0.0635647252202034,
+    "validation_acceptance_threshold": 0.06483601972460747,
+    "pseudo_memory_samples": 0,
+    "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_04_posttrain/rejected_model.pt"
+  },
+  {
+    "cycle_id": 5,
+    "stage": "posttrain",
+    "status": "accepted",
+    "accepted_for_next_cycle": true,
+    "candidate_summary": {
+      "candidate_count": 320,
+      "filter_pass_count": 320,
+      "selected_count": 80,
+      "rejection_counts": {
+        "accepted": 80,
+        "valid_not_selected": 240
+      },
+      "residual_ratio": {
+        "mean": 0.14161746203899384,
+        "min": 0.0003451484371908009,
+        "max": 0.19172793626785278,
+        "p95": 0.19083689153194427
+      },
+      "confidence_score": {
+        "mean": 0.507823646068573,
+        "min": 0.33357295393943787,
+        "max": 0.9982757568359375
+      }
+    },
+    "experimental_validation": {
+      "rmse": 0.06380528211593628,
+      "mae": 0.049748580902814865,
+      "r2": 0.9904595017433167
+    },
+    "previous_validation_rmse": 0.0635647252202034,
+    "validation_acceptance_threshold": 0.06483601972460747,
+    "pseudo_memory_samples": 80,
+    "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_05_posttrain/model.pt"
+  },
+  {
+    "cycle_id": 6,
+    "stage": "posttrain",
+    "status": "rolled_back_validation_degradation",
+    "accepted_for_next_cycle": false,
+    "candidate_summary": {
+      "candidate_count": 320,
+      "filter_pass_count": 320,
+      "selected_count": 80,
+      "rejection_counts": {
+        "accepted": 80,
+        "valid_not_selected": 240
+      },
+      "residual_ratio": {
+        "mean": 0.14931070804595947,
+        "min": 0.0005342105869203806,
+        "max": 0.1938362568616867,
+        "p95": 0.1915281116962433
+      },
+      "confidence_score": {
+        "mean": 0.48712605237960815,
+        "min": 0.3269135057926178,
+        "max": 0.9973325133323669
+      }
+    },
+    "experimental_validation": {
+      "rmse": 0.06651744246482849,
+      "mae": 0.05236249044537544,
+      "r2": 0.989631175994873
+    },
+    "previous_validation_rmse": 0.06380528211593628,
+    "validation_acceptance_threshold": 0.06483601972460747,
+    "pseudo_memory_samples": 80,
+    "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_06_posttrain/rejected_model.pt"
+  },
+  {
+    "cycle_id": 7,
+    "stage": "posttrain",
+    "status": "rolled_back_validation_degradation",
+    "accepted_for_next_cycle": false,
+    "candidate_summary": {
+      "candidate_count": 320,
+      "filter_pass_count": 320,
+      "selected_count": 80,
+      "rejection_counts": {
+        "accepted": 80,
+        "valid_not_selected": 240
+      },
+      "residual_ratio": {
+        "mean": 0.14937648177146912,
+        "min": 0.0016527180559933186,
+        "max": 0.19384589791297913,
+        "p95": 0.19153393805027008
+      },
+      "confidence_score": {
+        "mean": 0.48602333664894104,
+        "min": 0.30252212285995483,
+        "max": 0.9917704463005066
+      }
+    },
+    "experimental_validation": {
+      "rmse": 0.0675182119011879,
+      "mae": 0.052966970950365067,
+      "r2": 0.9893168210983276
+    },
+    "previous_validation_rmse": 0.06380528211593628,
+    "validation_acceptance_threshold": 0.06483601972460747,
+    "pseudo_memory_samples": 80,
+    "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_07_posttrain/rejected_model.pt"
+  },
+  {
+    "cycle_id": 8,
+    "stage": "posttrain",
+    "status": "rolled_back_validation_degradation",
+    "accepted_for_next_cycle": false,
+    "candidate_summary": {
+      "candidate_count": 320,
+      "filter_pass_count": 320,
+      "selected_count": 80,
+      "rejection_counts": {
+        "accepted": 80,
+        "valid_not_selected": 240
+      },
+      "residual_ratio": {
+        "mean": 0.1489054411649704,
+        "min": 0.0011377219343557954,
+        "max": 0.19383729994297028,
+        "p95": 0.19153298437595367
+      },
+      "confidence_score": {
+        "mean": 0.4895116686820984,
+        "min": 0.35353100299835205,
+        "max": 0.9943275451660156
+      }
+    },
+    "experimental_validation": {
+      "rmse": 0.06711529195308685,
+      "mae": 0.053728487342596054,
+      "r2": 0.9894439578056335
+    },
+    "previous_validation_rmse": 0.06380528211593628,
+    "validation_acceptance_threshold": 0.06483601972460747,
+    "pseudo_memory_samples": 80,
+    "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-203004__iterative_self_training/cycle_08_posttrain/rejected_model.pt"
+  }
+]

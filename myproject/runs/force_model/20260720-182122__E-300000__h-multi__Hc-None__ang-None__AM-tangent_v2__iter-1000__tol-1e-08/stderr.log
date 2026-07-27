@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_force_model.py", line 1077, in <module>
+    main()
+    ~~~~^^
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_force_model.py", line 663, in main
+    F_total_base, F_cyl_base, F_soft_base = compute_force_matlab_style(
+                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        X,
+        ^^
+    ...<4 lines>...
+        tol=TOL_BASELINE,
+        ^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_force_model.py", line 408, in compute_force_matlab_style
+    integrate = getattr(np, "trapezoid", np.trapz)
+                                         ^^^^^^^^
+  File "/Users/zyp/miniforge3/envs/pinn-seagrass/lib/python3.13/site-packages/numpy/__init__.py", line 769, in __getattr__
+    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}")
+AttributeError: module 'numpy' has no attribute 'trapz'. Did you mean: 'trace'?

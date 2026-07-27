@@ -1,0 +1,20 @@
+{
+  "candidate_count": 320,
+  "filter_pass_count": 320,
+  "selected_count": 80,
+  "rejection_counts": {
+    "accepted": 80,
+    "valid_not_selected": 240
+  },
+  "residual_ratio": {
+    "mean": 0.05508499592542648,
+    "min": 7.830159302102402e-05,
+    "max": 0.16336295008659363,
+    "p95": 0.12441360205411911
+  },
+  "confidence_score": {
+    "mean": 0.7692335844039917,
+    "min": 0.3178357481956482,
+    "max": 0.99960857629776
+  }
+}

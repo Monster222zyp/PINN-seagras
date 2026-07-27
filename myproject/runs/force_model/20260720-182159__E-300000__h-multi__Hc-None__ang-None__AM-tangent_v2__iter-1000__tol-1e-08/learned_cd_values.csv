@@ -1,0 +1,1 @@
+idx,v,Hc,Dc,L,Re_cyl,Re_soft,Ca,Cd_cyl,Cd_soft,y_true,y_pred,F_cyl_pred,F_soft_pred,F_soft_pred_col1,F_soft_pred_col2,F_soft_pred_col3,Fc1(F@Cd=1),Fs1(F@Cd=1),Fs1_col1,Fs1_col2,Fs1_col3

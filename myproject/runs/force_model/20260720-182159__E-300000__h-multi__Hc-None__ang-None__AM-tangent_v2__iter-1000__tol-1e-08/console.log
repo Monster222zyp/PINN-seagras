@@ -1,0 +1,206 @@
+运行目录: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs_force/20260720-182159__E-300000__h-multi__Hc-None__ang-None__AM-tangent_v2__iter-1000__tol-1e-08
+已按条件筛选：Hc=None, E=300000, h=0.01, angles=None，样本数 228 -> 0
+[CD] Epoch 1/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 1000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 1200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 1400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 1600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 1800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 2000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 2200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 2400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 2600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 2800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 3000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 3200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 3400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 3600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 3800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 4000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 4200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 4400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 4600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 4800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 5000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 5200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 5400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 5600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 5800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 6000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 6200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 6400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 6600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 6800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 7000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 7200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 7400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 7600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 7800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 8000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 8200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 8400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 8600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 8800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 9000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 9200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 9400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 9600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 9800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 10000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 10200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 10400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 10600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 10800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 11000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 11200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 11400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 11600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 11800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 12000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 12200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 12400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 12600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 12800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 13000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 13200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 13400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 13600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 13800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 14000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 14200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 14400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 14600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 14800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 15000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 15200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 15400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 15600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 15800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 16000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 16200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 16400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 16600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 16800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 17000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 17200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 17400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 17600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 17800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 18000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 18200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 18400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 18600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 18800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 19000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 19200/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 19400/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 19600/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 19800/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[CD] Epoch 20000/20000 - train=nan  val=nan  mean(Cd_cyl)~nan  mean(Cd_soft)~nan
+[RES] Epoch 1/20000 - train=nan  val=nan  lr=2.00e-03
+[RES] Epoch 200/20000 - train=nan  val=nan  lr=1.00e-03
+[RES] Epoch 400/20000 - train=nan  val=nan  lr=2.50e-04
+[RES] Epoch 600/20000 - train=nan  val=nan  lr=6.25e-05
+[RES] Epoch 800/20000 - train=nan  val=nan  lr=1.56e-05
+[RES] Epoch 1000/20000 - train=nan  val=nan  lr=3.91e-06
+[RES] Epoch 1200/20000 - train=nan  val=nan  lr=9.77e-07
+[RES] Epoch 1400/20000 - train=nan  val=nan  lr=2.44e-07
+[RES] Epoch 1600/20000 - train=nan  val=nan  lr=6.10e-08
+[RES] Epoch 1800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 2000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 2200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 2400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 2600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 2800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 3000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 3200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 3400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 3600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 3800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 4000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 4200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 4400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 4600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 4800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 5000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 5200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 5400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 5600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 5800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 6000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 6200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 6400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 6600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 6800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 7000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 7200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 7400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 7600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 7800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 8000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 8200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 8400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 8600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 8800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 9000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 9200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 9400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 9600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 9800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 10000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 10200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 10400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 10600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 10800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 11000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 11200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 11400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 11600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 11800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 12000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 12200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 12400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 12600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 12800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 13000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 13200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 13400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 13600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 13800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 14000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 14200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 14400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 14600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 14800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 15000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 15200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 15400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 15600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 15800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 16000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 16200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 16400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 16600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 16800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 17000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 17200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 17400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 17600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 17800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 18000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 18200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 18400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 18600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 18800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 19000/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 19200/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 19400/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 19600/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 19800/20000 - train=nan  val=nan  lr=1.53e-08
+[RES] Epoch 20000/20000 - train=nan  val=nan  lr=1.53e-08
+保存阻力系数参数: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs_force/20260720-182159__E-300000__h-multi__Hc-None__ang-None__AM-tangent_v2__iter-1000__tol-1e-08/learned_cd_params.json
+保存逐样本 Cd 明细: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs_force/20260720-182159__E-300000__h-multi__Hc-None__ang-None__AM-tangent_v2__iter-1000__tol-1e-08/learned_cd_values.csv

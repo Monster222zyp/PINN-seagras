@@ -1,0 +1,37 @@
+{
+  "experimental_train": {
+    "rmse": 0.05671578273177147,
+    "mae": 0.04281550645828247,
+    "r2": 0.9955412745475769
+  },
+  "experimental_validation": {
+    "rmse": 0.06411011517047882,
+    "mae": 0.04654194414615631,
+    "r2": 0.9934052228927612
+  },
+  "counts": {
+    "experimental_train": 118,
+    "experimental_validation": 34,
+    "holdout": 76,
+    "pseudo": 0,
+    "synthetic": 80,
+    "total": 308
+  },
+  "experimental_holdout": {
+    "rmse": 0.22788378596305847,
+    "mae": 0.1555061936378479,
+    "r2": 0.6428137421607971
+  },
+  "synthetic": {
+    "rmse": 0.1243240237236023,
+    "mae": 0.07021421194076538,
+    "r2": 0.9751651883125305
+  },
+  "residual_ratio": {
+    "mean": 0.088271863758564,
+    "p95": 0.2636248767375946,
+    "max": 0.28398412466049194
+  },
+  "best_epoch": 121,
+  "best_val_force_abs": 0.00569709949195385
+}

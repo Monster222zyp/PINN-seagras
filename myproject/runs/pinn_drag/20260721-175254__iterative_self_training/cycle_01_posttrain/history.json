@@ -1,0 +1,28 @@
+[
+  {
+    "epoch": 1,
+    "train_loss": 9.439946810404459,
+    "train_force": 8.919544378916422,
+    "train_force_abs": 14.253270467122396,
+    "train_force_rel": 6.906663099924724,
+    "train_force_log": 0.4412036140759786,
+    "train_cd_prior": 0.2191367894411087,
+    "train_residual": 0.028282420709729195,
+    "train_reconf_poly": 0.8326287070910136,
+    "train_leaf_aux": 23.59600257873535,
+    "train_column_aux": 4.451117038726807,
+    "train_shielding_aux": 0.054001095394293465,
+    "val_loss": 9.388349533081055,
+    "val_force": 8.930015563964844,
+    "val_force_abs": 13.454448699951172,
+    "val_force_rel": 7.953131198883057,
+    "val_force_log": 0.4595917761325836,
+    "val_cd_prior": 0.22792601585388184,
+    "val_residual": 0.029199035838246346,
+    "val_reconf_poly": 0.8169445991516113,
+    "val_leaf_aux": 20.774948120117188,
+    "val_column_aux": 3.8758544921875,
+    "val_shielding_aux": 0.06560922414064407,
+    "learning_rate": 0.0005
+  }
+]

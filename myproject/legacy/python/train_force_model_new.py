@@ -1,32 +1,32 @@
 """
-基于实验数据的力学预测训练脚本（PyTorch�?
+基于实验数据的力学预测训练脚本（PyTorch�?
 
-数据说明（来自用户）�?
-- X_matrix 列定义（�?1列）�?
-  0: 流�?v (m/s)
-  1: 刚性圆柱高�?Hc (m)
+数据说明（来自用户）�?
+- X_matrix 列定义（�?1列）�?
+  0: 流�?v (m/s)
+  1: 刚性圆柱高�?Hc (m)
   2: 圆柱直径 Dc (m)
   3: 每个角度下欧拉梁条数 N_blades（总力需乘此数）
-  4: 欧拉梁长�?L (m)
-  5: 欧拉梁厚�?t (m)
-  6: 欧拉梁高�?h (m)
+  4: 欧拉梁长�?L (m)
+  5: 欧拉梁厚�?t (m)
+  6: 欧拉梁高�?h (m)
   7: 材料杨氏模量 E (Pa)
-  8: 迎流角度1（度�?
-  9: 迎流角度2（度�?
-  10: 迎流角度3（度�?
-- Y_matrix: 对应样本的总测�?(N)
+  8: 迎流角度1（度�?
+  9: 迎流角度2（度�?
+  10: 迎流角度3（度�?
+- Y_matrix: 对应样本的总测�?(N)
 
-建模思路�?
-- 明确的物理先验：刚性圆柱阻�?Fc = 0.5 * rho * Hc * v^2 * Dc
-- 欧拉梁部分采用经验近似的先验�?
+建模思路�?
+- 明确的物理先验：刚性圆柱阻�?Fc = 0.5 * rho * Hc * v^2 * Dc
+- 欧拉梁部分采用经验近似的先验�?
   迎流面积 A ~ L * h * sin(theta)
   阻力系数 Cd ~ 2 * sin(theta)
   F_blade_base = 0.5 * rho * v^2 * N_blades * Σ[A(theta) * Cd(theta)]
-- 模型学习残差：y_true �?Fc + F_blade_base + f_theta(x)
+- 模型学习残差：y_true �?Fc + F_blade_base + f_theta(x)
 
-输出�?
+输出�?
 - 训练日志
-- 图像：同一叶片属性下（固定除流速外的X列），随速度变化�?预测vs实测 折线�?
+- 图像：同一叶片属性下（固定除流速外的X列），随速度变化�?预测vs实测 折线�?
 """
 
 import os
@@ -44,45 +44,45 @@ from scipy.io import loadmat
 from typing import Optional
 
 # 环境设置：使用与项目一致的后端配置
-import config  # noqa: F401  # 设置 DDE_BACKEND �?sys.path
+import config  # noqa: F401  # 设置 DDE_BACKEND �?sys.path
 
 
-# ========================= 可配置变量（便于修改�?=========================
-# 物�?
-RHO_DEFAULT = 1000.0           # 水密�?(kg/m^3)
+# ========================= 可配置变量（便于修改�?=========================
+# 物�?
+RHO_DEFAULT = 1000.0           # 水密�?(kg/m^3)
 MU_WATER = 1e-3                # 动力黏度 (Pa·s)
 
-# 欧拉梁迭�?离散
+# 欧拉梁迭�?离散
 N_NODES_BEAM = 200             # 梁离散节点数
-AREA_MODE = "max"              # "local" �?"max"
-MAX_ITER_BASELINE = 1000       # 基线迭代次数�?0 使用迭代模型�?0 使用简化模型）
-TOL_BASELINE = 1e-8            # 迭代收敛阈�?
+AREA_MODE = "max"              # "local" �?"max"
+MAX_ITER_BASELINE = 1000       # 基线迭代次数�?0 使用迭代模型�?0 使用简化模型）
+TOL_BASELINE = 1e-8            # 迭代收敛阈�?
 
-# 角度�?180° 的条带：认为力极小（�?0）�?
-THETA180_ZERO_FORCE = True     # 是否�?theta�?80° 的条带置�?削弱
-THETA_ZERO_DEG = 180.0         # 认为近零力的角度中心（度�?
-THETA_ZERO_TOL_DEG = 1e-4      # 角度容差（度）；|theta - 180| <= 容差 时生�?
-THETA_ZERO_SCALE = 0.0         # 削弱比例�?.0 表示直接置零�?
+# 角度�?180° 的条带：认为力极小（�?0）�?
+THETA180_ZERO_FORCE = True     # 是否�?theta�?80° 的条带置�?削弱
+THETA_ZERO_DEG = 180.0         # 认为近零力的角度中心（度�?
+THETA_ZERO_TOL_DEG = 1e-4      # 角度容差（度）；|theta - 180| <= 容差 时生�?
+THETA_ZERO_SCALE = 0.0         # 削弱比例�?.0 表示直接置零�?
 
-# 学习超参�?
-LR_CD = 3e-3                   # Cd 参数学习�?
-LR_RES = 2e-3                  # 残差网络学习�?
-WEIGHT_DECAY = 1e-6            # 优化器权重衰�?
+# 学习超参�?
+LR_CD = 3e-3                   # Cd 参数学习�?
+LR_RES = 2e-3                  # 残差网络学习�?
+WEIGHT_DECAY = 1e-6            # 优化器权重衰�?
 EPOCHS_CD = 20000              # Cd 拟合轮数
 EPOCHS_RES = 20000              # 残差网络训练轮数
 
-# 先验与正�?
-CD_PRIOR_CYL = 1.2             # 圆柱 Cd 的先验均�?
-CD_PRIOR_SOFT = 2.0            # 软条 Cd 的先验均�?
-CD_PRIOR_REG = 1e-2            # 将学到的 Cd 的均值拉向先验的正则权重（全局�?
-CD_PRIOR_REG_CYL = 1e-2        # 圆柱 Cd 的先验正则（均值→CD_PRIOR_CYL�?
-CD_PRIOR_REG_SOFT = 1e-2       # 软条 phi(Re) 的先验正则（均值→1，对�?Cd_soft�?�?
+# 先验与正�?
+CD_PRIOR_CYL = 1.2             # 圆柱 Cd 的先验均�?
+CD_PRIOR_SOFT = 2.0            # 软条 Cd 的先验均�?
+CD_PRIOR_REG = 1e-2            # 将学到的 Cd 的均值拉向先验的正则权重（全局�?
+CD_PRIOR_REG_CYL = 1e-2        # 圆柱 Cd 的先验正则（均值→CD_PRIOR_CYL�?
+CD_PRIOR_REG_SOFT = 1e-2       # 软条 phi(Re) 的先验正则（均值→1，对�?Cd_soft�?�?
 RES_L2_REG = 1e-8              # 残差网络参数 L2 正则
 # ======================================================================
 
 # 训练目标筛选（默认 None 表示不过滤）
 SELECT_E: Optional[float] = 300000  # 例如 2e7
-SELECT_H: Optional[float] = 0.01   # 叶片高度 h (m)，例�?0.01
+SELECT_H: Optional[float] = 0.01   # 叶片高度 h (m)，例�?0.01
 
 
 def load_dataset(mat_path: str):
@@ -100,18 +100,18 @@ def load_dataset(mat_path: str):
 
 
 def finite_difference_matrix(n: int, dx: float) -> np.ndarray:
-    """严格固定�?自由端边界的四阶梁算子离散矩阵，�?MATLAB 版本缩放 A/dx^4�?""
+    """严格固定�?自由端边界的四阶梁算子离散矩阵，�?MATLAB 版本缩放 A/dx^4�?""
     A = np.zeros((n, n), dtype=float)
-    # 固定�? w(0)=0
+    # 固定�? w(0)=0
     A[0, 0] = 1.0
-    # 固定端斜�? dw/dx(0)=0 => w1 = w2
+    # 固定端斜�? dw/dx(0)=0 => w1 = w2
     A[1, 0:2] = np.array([-1.0, 1.0]) / dx
     # 内部节点: 四阶导数离散
     for i in range(2, n - 2):
         A[i, i - 2:i + 3] = np.array([1.0, -4.0, 6.0, -4.0, 1.0])
-    # 自由�? 弯矩=0 => d2w/dx2=0
+    # 自由�? 弯矩=0 => d2w/dx2=0
     A[n - 2, n - 3:n] = np.array([1.0, -2.0, 1.0])
-    # 自由�? 剪力=0 => d3w/dx3=0
+    # 自由�? 剪力=0 => d3w/dx3=0
     A[n - 1, n - 4:n] = np.array([-1.0, 3.0, -3.0, 1.0])
     return A / (dx ** 4)
 
@@ -126,7 +126,7 @@ def compute_force_matlab_style(
     area_mode: str = "local",
     return_angle_components: bool = False,
 ) -> tuple:
-    """按照 calculate_drag_coefficient.m 的思路计算物理基线力�?
+    """按照 calculate_drag_coefficient.m 的思路计算物理基线力�?
 
     返回: (F_total, F_cylinder, F_soft_total)
     """
@@ -138,7 +138,7 @@ def compute_force_matlab_style(
     t = X[:, 5]
     h = X[:, 6]
     E = X[:, 7]
-    angs = X[:, 8:11]  # �?
+    angs = X[:, 8:11]  # �?
 
     # 圆柱阻力
     F_cyl = 0.5 * rho * Cd_cyl * Dc * Hc * (v ** 2)
@@ -166,11 +166,11 @@ def compute_force_matlab_style(
                 total += comp
             F_soft_total[i] = total
     else:
-        # 迭代模型（欧拉梁 + 动态角�?+ 分布载荷�?
+        # 迭代模型（欧拉梁 + 动态角�?+ 分布载荷�?
         for i in range(n_samples):
             L_i, t_i, h_i, E_i = L[i], t[i], h[i], E[i]
             U = v[i]
-            # 梁离�?
+            # 梁离�?
             n_nodes = N_NODES_BEAM
             dx = L_i / (n_nodes - 1)
             x = np.linspace(0.0, L_i, n_nodes)
@@ -183,9 +183,9 @@ def compute_force_matlab_style(
                 theta0 = np.deg2rad(theta0_deg)
                 w_prev = np.zeros(n_nodes, dtype=float)
                 for _ in range(max_iter):
-                    # 斜率�?
+                    # 斜率�?
                     slope_rad = np.arctan(np.gradient(w_prev, dx))
-                    # 角度迭代方向�?180°（pi）受力后角度变小�?180°受力后角度变�?
+                    # 角度迭代方向�?180°（pi）受力后角度变小�?180°受力后角度变�?
                     if theta0 > np.pi:
                         total_angle_rad = theta0 - slope_rad
                     else:
@@ -199,12 +199,12 @@ def compute_force_matlab_style(
                     q_magnitude = 0.5 * rho * Cd_soft * ang_scalar * h_i * (np.abs(U_normal) ** 2)
                     direction = np.sign(U_normal)
                     q = direction * q_magnitude
-                    # 若该列初始角度接�?180°，将载荷削弱/置零
+                    # 若该列初始角度接�?180°，将载荷削弱/置零
                     if THETA180_ZERO_FORCE and abs(theta0_deg - THETA_ZERO_DEG) <= THETA_ZERO_TOL_DEG:
                         q = THETA_ZERO_SCALE * q
                     # 位移解：A 已含 1/dx^4 缩放 => A·w = q/EI
                     w_new = np.linalg.solve(A, q / (EI + 1e-12))
-                    # 固定端校�?
+                    # 固定端校�?
                     w_new[0] = 0.0
                     if n_nodes > 1:
                         w_new[1] = w_new[0]
@@ -217,7 +217,7 @@ def compute_force_matlab_style(
                 comp = n_per_col[i] * np.abs(F_single)
                 F_soft_cols.append(comp)
                 F_soft_cols_mat[i, k] = comp
-            # 列力本就为正，直接求�?
+            # 列力本就为正，直接求�?
             F_soft_total[i] = np.sum(F_soft_cols)
 
     F_total = F_cyl + F_soft_total
@@ -227,15 +227,15 @@ def compute_force_matlab_style(
 
 
 def compute_physics_priors(X: np.ndarray, rho: float = 1000.0):
-    # 列解�?
+    # 列解�?
     v = X[:, 0]
     Hc = X[:, 1]
     Dc = X[:, 2]
     n_blades = X[:, 3]
     L = X[:, 4]
-    t = X[:, 5]  # 未直接用于先验，可作为输入特�?
+    t = X[:, 5]  # 未直接用于先验，可作为输入特�?
     h = X[:, 6]
-    E = X[:, 7]  # 未直接用于先验，可作为输入特�?
+    E = X[:, 7]  # 未直接用于先验，可作为输入特�?
     ang1_deg = X[:, 8]
     ang2_deg = X[:, 9]
     ang3_deg = X[:, 10]
@@ -243,7 +243,7 @@ def compute_physics_priors(X: np.ndarray, rho: float = 1000.0):
     # 圆柱阻力先验
     Fc = 0.5 * rho * Hc * (v ** 2) * Dc
 
-    # 欧拉梁经验先验（�?.m 的简化模型一致：F_soft ~ 0.5*rho*Cd_soft*h*L*|sin(theta)|*U^2�?
+    # 欧拉梁经验先验（�?.m 的简化模型一致：F_soft ~ 0.5*rho*Cd_soft*h*L*|sin(theta)|*U^2�?
     def blade_term(theta_deg):
         theta = np.deg2rad(theta_deg)
         area = L * h * np.abs(np.sin(theta))
@@ -276,7 +276,7 @@ class ResidualMLP(nn.Module):
 
 
 def build_features(X: np.ndarray, Fc: np.ndarray, F_blade_base: np.ndarray, angle_trigs: tuple):
-    # 构造特征：原始11�?+ 两个物理先验分量 + v 的多项式 + 形状/材料派生�?+ 角度正余�?+ 关键交互�?
+    # 构造特征：原始11�?+ 两个物理先验分量 + v 的多项式 + 形状/材料派生�?+ 角度正余�?+ 关键交互�?
     v = X[:, 0:1]
     Hc = X[:, 1:2]
     Dc = X[:, 2:3]
@@ -332,9 +332,9 @@ def set_seed(seed: int = 42):
 def main():
     # 参数：允许用户指定目标组（例如按 Hc/E/角度筛选）
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target-hc", type=float, default=None, help="指定圆柱高度 Hc 进行筛�?(m)")
-    parser.add_argument("--target-e", type=float, default=None, help="指定杨氏模量 E 进行筛�?(Pa)")
-    parser.add_argument("--target-h", type=float, default=None, help="指定叶片高度 h 进行筛�?(m)")
+    parser.add_argument("--target-hc", type=float, default=None, help="指定圆柱高度 Hc 进行筛�?(m)")
+    parser.add_argument("--target-e", type=float, default=None, help="指定杨氏模量 E 进行筛�?(Pa)")
+    parser.add_argument("--target-h", type=float, default=None, help="指定叶片高度 h 进行筛�?(m)")
     parser.add_argument(
         "--target-angles",
         type=str,
@@ -345,7 +345,8 @@ def main():
     args = parser.parse_args([]) if os.environ.get("CURSOR_INVOCATION", "0") == "1" else parser.parse_args()
 
     set_seed(42)
-    mat_path = os.path.join(os.path.dirname(__file__), "pinn_training_data.mat")
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    mat_path = os.path.join(project_dir, "data", "pinn_training_data.mat")
     X, y = load_dataset(mat_path)
 
     # 若命令行未给出，使用顶部选择变量
@@ -354,9 +355,8 @@ def main():
     if args.target_h is None and SELECT_H is not None:
         args.target_h = SELECT_H
 
-    # 结果输出目录：runs_force/<timestamp>__参数签名
-    script_dir = os.path.dirname(__file__)
-    runs_root = os.path.join(script_dir, "runs_force")
+    # 结果输出目录：runs/force_model/<timestamp>__参数签名
+    runs_root = os.path.join(project_dir, "runs", "force_model")
     os.makedirs(runs_root, exist_ok=True)
     def _fmt(v):
         if v is None:
@@ -405,11 +405,11 @@ def main():
     ]
     run_dir = os.path.join(runs_root, "__".join(run_name_parts))
     os.makedirs(run_dir, exist_ok=True)
-    # 记录最近一次运�?
+    # 记录最近一次运�?
     with open(os.path.join(runs_root, "LATEST.txt"), "w", encoding="utf-8") as f:
         f.write(os.path.basename(run_dir))
 
-    # �?stdout/stderr 同步到文�?
+    # �?stdout/stderr 同步到文�?
     class _Tee:
         def __init__(self, stream, logfile_path):
             self.stream = stream
@@ -462,7 +462,7 @@ def main():
     with open(os.path.join(run_dir, "run_config.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
 
-    # 使用 MATLAB 风格的力学基线（总力/圆柱/软条�?
+    # 使用 MATLAB 风格的力学基线（总力/圆柱/软条�?
     F_total_base, F_cyl_base, F_soft_base = compute_force_matlab_style(
         X,
         rho=RHO_DEFAULT,
@@ -472,16 +472,16 @@ def main():
         tol=TOL_BASELINE,
         area_mode=AREA_MODE,
     )
-    # 同时保留简单先验以供特征构�?
+    # 同时保留简单先验以供特征构�?
     Fc, F_blade_base, angle_trigs = compute_physics_priors(X)
 
-    # 目标：学习残�?r = y - Fc - F_blade_base
-    # �?MATLAB 基线为主，学习残�?
+    # 目标：学习残�?r = y - Fc - F_blade_base
+    # �?MATLAB 基线为主，学习残�?
     residual = y - F_total_base
 
-    # 构造特�?
+    # 构造特�?
     X_feat = build_features(X, Fc, F_blade_base, angle_trigs)
-    # 追加基线力作为特�?
+    # 追加基线力作为特�?
     X_feat = np.concatenate([X_feat, F_total_base[:, None], F_cyl_base[:, None], F_soft_base[:, None]], axis=1)
 
     # 划分训练/验证/测试前先随机打乱索引
@@ -493,13 +493,13 @@ def main():
     y_shuf = y[idx]
     X_shuf = X[idx]
 
-    # 若指定目标组，按条件筛选（Hc/E/角度�?
+    # 若指定目标组，按条件筛选（Hc/E/角度�?
     if args.target_hc is not None or args.target_e is not None or args.target_h is not None or args.target_angles is not None:
         mask = np.ones(len(X_shuf), dtype=bool)
         if args.target_hc is not None:
             mask &= np.isclose(X_shuf[:, 1], args.target_hc, atol=args.atol)
         if args.target_e is not None:
-            # E 数量级大，用绝对公差=1 或用户给定的 atol 更合�?
+            # E 数量级大，用绝对公差=1 或用户给定的 atol 更合�?
             mask &= np.isclose(X_shuf[:, 7], args.target_e, rtol=0, atol=max(args.atol, 1.0))
         if args.target_h is not None:
             mask &= np.isclose(X_shuf[:, 6], args.target_h, atol=args.atol)
@@ -508,12 +508,12 @@ def main():
                 tgt = [float(s) for s in args.target_angles.split(",")]
                 if len(tgt) == 3:
                     tgt_sorted = np.sort(np.array(tgt))
-                    # 行级比较三角度集合（无序匹配�?
+                    # 行级比较三角度集合（无序匹配�?
                     angs_sorted = np.sort(X_shuf[:, 8:11], axis=1)
                     mask &= np.all(np.isclose(angs_sorted, tgt_sorted[None, :], atol=args.atol), axis=1)
             except Exception:
                 pass
-        # 应用筛�?
+        # 应用筛�?
         before = len(X_shuf)
         X_feat = X_feat[mask]
         residual = residual[mask]
@@ -527,13 +527,13 @@ def main():
     Xtr, Xval, Xte = X_feat[:n_train], X_feat[n_train:n_train + n_val], X_feat[n_train + n_val:]
     rtr, rval, rte = residual[:n_train], residual[n_train:n_train + n_val], residual[n_train + n_val:]
 
-    # 标准化：特征与残�?
+    # 标准化：特征与残�?
     Xtr_std, mean_x, std_x = standardize(Xtr, Xtr)
     Xval_std = (Xval - mean_x) / std_x
     Xte_std = (Xte - mean_x) / std_x
 
     # 基于基线力的初始残差（cd=1）用于残差标准化
-    # 与训�?预测一致：使用迭代欧拉梁基线（Cd=1�?
+    # 与训�?预测一致：使用迭代欧拉梁基线（Cd=1�?
     _, Fc1_all, Fs1_all = compute_force_matlab_style(
         X_shuf,
         rho=RHO_DEFAULT,
@@ -549,7 +549,7 @@ def main():
     rval_std = (r0_all[n_train:n_train + n_val] - mean_r) / std_r
     rte_std = (r0_all[n_train + n_val:] - mean_r) / std_r
 
-    # 张量�?
+    # 张量�?
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     Xtr_t = torch.tensor(Xtr_std, dtype=torch.float32).to(device)
     rtr_t = torch.tensor(rtr_std.squeeze(-1), dtype=torch.float32).to(device)
@@ -572,7 +572,7 @@ def main():
     Fc1_val = torch.tensor(Fc1_all[n_train:n_train + n_val], dtype=torch.float32).to(device)
     Fs1_val = torch.tensor(Fs1_all[n_train:n_train + n_val], dtype=torch.float32).to(device)
 
-    # 计算雷诺数与柔度指标 Ca（Cauchy 数，�?E 降低/速度增大而增大）
+    # 计算雷诺数与柔度指标 Ca（Cauchy 数，�?E 降低/速度增大而增大）
     mu = MU_WATER
     rho = RHO_DEFAULT
     v_all = torch.tensor(X_shuf[:, 0], dtype=torch.float32, device=device)
@@ -593,14 +593,14 @@ def main():
     Ca_tr = Ca_all[:n_train]
     Ca_val = Ca_all[n_train:n_train + n_val]
 
-    # 阶段1：仅拟合 Cd(Re)，冻结残差（残差置零�?
+    # 阶段1：仅拟合 Cd(Re)，冻结残差（残差置零�?
     a0 = nn.Parameter(torch.tensor(0.1, dtype=torch.float32, device=device))
     a1 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))
     a2 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))
     b0 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))  # phi(Re) 偏置
     b1 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))  # 1/Re
     b2 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32, device=device))  # 1/Re^2
-    m0 = nn.Parameter(torch.tensor(0.1, dtype=torch.float32, device=device))  # Ca 衰减强度（softplus>=0�?
+    m0 = nn.Parameter(torch.tensor(0.1, dtype=torch.float32, device=device))  # Ca 衰减强度（softplus>=0�?
     cd_params = [a0, a1, a2, b0, b1, b2, m0]
     opt_cd = torch.optim.Adam(cd_params, lr=LR_CD)
     best_val_cd = float('inf')
@@ -614,7 +614,7 @@ def main():
         cd_soft_tr = 2.0 * phi_tr * torch.exp(-m_tr * torch.log1p(Ca_tr))
         y_pred_tr = cd_cyl_tr * Fc1_tr + cd_soft_tr * Fs1_tr
         loss_cd = loss_fn(y_pred_tr, ytr_t)
-        # 先验：Cd_cyl 靠近物理区间；phi(Re) 的均值靠�?1（对�?Cd_soft�?�?
+        # 先验：Cd_cyl 靠近物理区间；phi(Re) 的均值靠�?1（对�?Cd_soft�?�?
         mean_cd_c = cd_cyl_tr.mean()
         mean_phi = phi_tr.mean()
         mean_cd_s = cd_soft_tr.mean()
@@ -638,7 +638,7 @@ def main():
         for p, b in zip(cd_params, best_cd):
             p.data = b.to(device)
 
-    # 阶段2：冻�?Cd，训练残差网�?
+    # 阶段2：冻�?Cd，训练残差网�?
     opt_res = torch.optim.Adam(model.parameters(), lr=LR_RES, weight_decay=WEIGHT_DECAY)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_res, mode='min', factor=0.5, patience=100)
     best_val = float('inf')
@@ -682,14 +682,14 @@ def main():
         r_pred_std = model(Xall_t).cpu().numpy().reshape(-1, 1)
     r_pred = r_pred_std * std_r + mean_r
     # 使用学习到的系数组合
-    # 使用学习到的 Cd(Re) 计算预测（与当前筛选后�?X_shuf 对齐�?
+    # 使用学习到的 Cd(Re) 计算预测（与当前筛选后�?X_shuf 对齐�?
     v_np = X_shuf[:, 0]
     Re_cyl_np = rho * v_np * X_shuf[:, 2] / mu
     Re_cyl_np = rho * v_np * X_shuf[:, 2] / mu
     with torch.no_grad():
         Re_cyl_all_t = torch.tensor(Re_cyl_np, dtype=torch.float32)
         Re_cyl_all_t = torch.tensor(Re_cyl_np, dtype=torch.float32)
-        # 计算 Ca（numpy �?torch�?
+        # 计算 Ca（numpy �?torch�?
         t_np = X_shuf[:, 5]
         h_np = X_shuf[:, 6]
         E_np = X_shuf[:, 7]
@@ -703,22 +703,22 @@ def main():
         phi_all = torch.nn.functional.softplus(b0.cpu() + b1.cpu() / (Re_cyl_all_t + 1e-6) + b2.cpu() / ((Re_cyl_all_t + 1e-6) ** 2))
         m_all = torch.nn.functional.softplus(m0.cpu())
         cd_s_all = (2.0 * phi_all * torch.exp(-m_all * torch.log1p(Ca_all_t))).numpy()
-    # 预测基线分量也与 X_shuf 对齐（cd=1 的分量，用于与学习到�?Cd(Re) 组合�?
+    # 预测基线分量也与 X_shuf 对齐（cd=1 的分量，用于与学习到�?Cd(Re) 组合�?
     _, Fc1_all_pred, Fs1_all_pred, Fs1_cols = compute_force_matlab_style(
         X_shuf,
         rho=RHO_DEFAULT,
         Cd_cyl=1.0,
         Cd_soft=1.0,
-        max_iter=MAX_ITER_BASELINE,  # 预测阶段使用迭代欧拉梁基�?
+        max_iter=MAX_ITER_BASELINE,  # 预测阶段使用迭代欧拉梁基�?
         tol=TOL_BASELINE,
         area_mode=AREA_MODE,
         return_angle_components=True,
     )
     y_pred = cd_c_all * Fc1_all_pred + cd_s_all * Fs1_all_pred + r_pred.squeeze(-1)
 
-    # 保存学习到的阻力系数：参数与逐样本的 Cd �?
+    # 保存学习到的阻力系数：参数与逐样本的 Cd �?
     out_dir = run_dir
-    # 1) 原始参数与统�?
+    # 1) 原始参数与统�?
     cd_params_out = {
         "a0": float(a0.detach().cpu().item()),
         "a1": float(a1.detach().cpu().item()),
@@ -735,13 +735,13 @@ def main():
         json.dump(cd_params_out, f, ensure_ascii=False, indent=2)
     print(f"保存阻力系数参数: {params_path}")
 
-    # 2) 逐样本的 Cd/Re/输入/输出汇�?
+    # 2) 逐样本的 Cd/Re/输入/输出汇�?
     idx_arr = np.arange(len(X_shuf))
     F_cyl_pred_arr = cd_c_all * Fc1_all_pred
-    # 三列软条的预测分解：先做基线（cd_s * Fs1_cols），再按列基线比例分摊残�?
+    # 三列软条的预测分解：先做基线（cd_s * Fs1_cols），再按列基线比例分摊残�?
     F_soft_pred_cols_base = cd_s_all[:, None] * Fs1_cols  # (n,3)
     denom = Fs1_all_pred[:, None]
-    # 若该样本三列基线之和接近0，则用均分权�?
+    # 若该样本三列基线之和接近0，则用均分权�?
     weights = np.divide(Fs1_cols, denom + 1e-12, where=(denom + 1e-12) != 0.0)
     near_zero_mask = np.isclose(Fs1_all_pred, 0.0, atol=1e-12)
     if np.any(near_zero_mask):
@@ -789,12 +789,12 @@ def main():
             comments="",
             fmt=["%d"] + ["%.6g"] * (table.shape[1] - 1),
         )
-    print(f"保存逐样�?Cd 明细: {csv_path}")
+    print(f"保存逐样�?Cd 明细: {csv_path}")
 
     # 针对“同一叶片属性，不同速度”绘图：
-    # 定义“叶片属性键�? 除速度外的所有列�?..10列）的四舍五入组合作为分组键
+    # 定义“叶片属性键�? 除速度外的所有列�?..10列）的四舍五入组合作为分组键
     def key_without_velocity(row):
-        # 对连续属性做适度量化，避免浮点误差分组过�?
+        # 对连续属性做适度量化，避免浮点误差分组过�?
         vals = [
             round(row[1], 6),
             round(row[2], 6),
@@ -802,7 +802,7 @@ def main():
             round(row[4], 6),
             round(row[5], 6),
             round(row[6], 6),
-            round(row[7], 0),  # E数量级大，近似整�?
+            round(row[7], 0),  # E数量级大，近似整�?
             round(row[8], 3),
             round(row[9], 3),
             round(row[10], 3),
@@ -841,11 +841,11 @@ def main():
     y_pred_plot = y_pred[idxs]
 
     plt.figure(figsize=(7, 4))
-    plt.plot(v_plot, y_true_plot, "o-", label="实验�?)
-    plt.plot(v_plot, y_pred_plot, "s-", label="预测�?)
-    plt.xlabel("流�?v (m/s)")
+    plt.plot(v_plot, y_true_plot, "o-", label="实验�?)
+    plt.plot(v_plot, y_pred_plot, "s-", label="预测�?)
+    plt.xlabel("流�?v (m/s)")
     plt.ylabel("总力 F (N)")
-    plt.title("同一叶片属性下，不同来流速度的力：预�?vs 实测")
+    plt.title("同一叶片属性下，不同来流速度的力：预�?vs 实测")
     plt.legend()
     out_png = os.path.join(run_dir, "pred_vs_true_velocity.png")
     plt.tight_layout()
@@ -853,16 +853,16 @@ def main():
     rmse = float(np.sqrt(np.mean((y_true_plot - y_pred_plot) ** 2)))
     mape = float(np.mean(np.abs((y_true_plot - y_pred_plot) / (np.abs(y_true_plot) + 1e-9))) * 100.0)
     print(f"保存图像: {out_png}  |  该组 RMSE={rmse:.4f}, MAPE={mape:.2f}%")
-    # 打印学习到的 Cd 的统计（全量样本平均�?
+    # 打印学习到的 Cd 的统计（全量样本平均�?
     cd_c_mean = float(np.mean(cd_c_all))
     cd_s_mean = float(np.mean(cd_s_all))
     print(f"学习到的 Cd_cyl(mean)={cd_c_mean:.4f}, Cd_soft(mean)={cd_s_mean:.4f}")
-    # 打印当前作图组的 Hc �?E
+    # 打印当前作图组的 Hc �?E
     grp = X_shuf[idxs]
     Hc_unique = np.unique(np.round(grp[:, 1], 6)).tolist()
     h_unique = np.unique(np.round(grp[:, 6], 6)).tolist()
     E_unique = np.unique(np.round(grp[:, 7], 0)).tolist()
-    print(f"当前作图�?Hc={Hc_unique}, h={h_unique}, E≈{E_unique}")
+    print(f"当前作图�?Hc={Hc_unique}, h={h_unique}, E≈{E_unique}")
 
     # 误差-速度诊断图（与当前数据子集对齐）
     err = y_pred - y_shuf
@@ -870,9 +870,9 @@ def main():
     plt.figure(figsize=(7,4))
     plt.plot(X_shuf[:,0], rel_err, 'o', alpha=0.7)
     plt.axhline(0, color='k', lw=1)
-    plt.xlabel('流�?v (m/s)')
+    plt.xlabel('流�?v (m/s)')
     plt.ylabel('相对误差')
-    plt.title('按速度的相对误差分�?)
+    plt.title('按速度的相对误差分�?)
     out_err = os.path.join(run_dir, 'error_vs_velocity.png')
     plt.tight_layout()
     plt.savefig(out_err, dpi=150)

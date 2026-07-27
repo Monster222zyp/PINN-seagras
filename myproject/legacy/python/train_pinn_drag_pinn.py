@@ -2,7 +2,7 @@
 基于 PINN 的阻力预测：F = F(E, h, Re)
 
 - 目标：训练一个神经网络，以材料杨氏模量 E、软条高度 h、雷诺数 Re 为输入，预测总阻力 F。
-- 数据：复用 myproject/pinn_training_data.mat 中的实验数据 (X_matrix, Y_matrix)。
+- 数据：复用 myproject/data/pinn_training_data.mat 中的实验数据 (X_matrix, Y_matrix)。
   - 其中 Re 按 Re = rho * v * Dc / mu 从数据的流速 v 与圆柱直径 Dc 计算。
 - PINN 思路：
   - 数据损失：MSE(F_pred, F_true)
@@ -28,10 +28,10 @@
       --predict-e 300000 \
       --predict-h 0.01 \
       --predict-re 5000 \
-      [--load-run myproject/runs_pinn_drag/2025...__pinn]
+      [--load-run myproject/runs/pinn_drag/2025...__pinn]
 
 输出：
-  - 运行目录 myproject/runs_pinn_drag/<timestamp>__pinn/ 下保存：
+  - 运行目录 myproject/runs/pinn_drag/<timestamp>__pinn/ 下保存：
     - console.log / stderr.log
     - run_config.json
     - model.pt（训练后模型）
@@ -121,8 +121,8 @@ class PINNDragMLP(nn.Module):
 
 
 def make_run_dir() -> str:
-    script_dir = os.path.dirname(__file__)
-    runs_root = os.path.join(script_dir, "runs_pinn_drag")
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    runs_root = os.path.join(project_dir, "runs", "pinn_drag")
     os.makedirs(runs_root, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir = os.path.join(runs_root, f"{ts}__pinn")
@@ -172,7 +172,7 @@ def train_pinn(
     print(f"运行目录: {run_dir}")
 
     # 加载数据
-    mat_path = os.path.join(os.path.dirname(__file__), "pinn_training_data.mat")
+    mat_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "pinn_training_data.mat")
     X, y = load_dataset(mat_path)
 
     # 构造输入：E, h, Re
@@ -477,7 +477,7 @@ def main():
         # 确定运行目录
         run_dir = args.load_run
         if run_dir is None:
-            runs_root = os.path.join(os.path.dirname(__file__), 'runs_pinn_drag')
+            runs_root = os.path.join(os.path.dirname(__file__), '..', '..', 'runs', 'pinn_drag')
             latest = os.path.join(runs_root, 'LATEST.txt')
             if not os.path.isfile(latest):
                 raise FileNotFoundError('未找到 LATEST.txt，请先训练或指定 --load-run')
@@ -508,7 +508,7 @@ def main():
 
     if args.plot_all:
         # 使用保存的模型绘制所有 (E,h) 的 Re 切片
-        runs_root = os.path.join(os.path.dirname(__file__), 'runs_pinn_drag')
+        runs_root = os.path.join(os.path.dirname(__file__), '..', '..', 'runs', 'pinn_drag')
         run_dir = args.load_run
         if run_dir is None:
             latest = os.path.join(runs_root, 'LATEST.txt')
@@ -518,7 +518,7 @@ def main():
                 run_name = f.read().strip()
             run_dir = os.path.join(runs_root, run_name)
         # 加载数据与模型
-        X, y = load_dataset(os.path.join(os.path.dirname(__file__), "pinn_training_data.mat"))
+        X, y = load_dataset(os.path.join(os.path.dirname(__file__), "..", "..", "data", "pinn_training_data.mat"))
         v = X[:, 0]; Dc = X[:, 2]; E = X[:, 7]; h = X[:, 6]
         Re = compute_reynolds(v, Dc)
         inputs = np.stack([E, h, Re], axis=1)

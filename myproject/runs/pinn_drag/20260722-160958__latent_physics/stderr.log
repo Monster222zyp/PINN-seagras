@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1708, in <module>
+    main()
+    ~~~~^^
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1588, in main
+    scaler = Standardizer.fit(features[train_idx])
+                              ~~~~~~~~^^^^^^^^^^^
+IndexError: index 152 is out of bounds for axis 0 with size 152

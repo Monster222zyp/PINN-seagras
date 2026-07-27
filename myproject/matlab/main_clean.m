@@ -36,6 +36,12 @@ end
 %% 1. 基本参数设置
 % 添加路径
 currentDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(currentDir);
+projectDataDir = fullfile(projectDir, 'data');
+projectRunsDir = fullfile(projectDir, 'runs', 'matlab_exports');
+if ~exist(projectDataDir, 'dir')
+    mkdir(projectDataDir);
+end
 
 % 根据标志符选择路径
 if USE_D_DRIVE
@@ -92,7 +98,7 @@ if RUN_DATA_PROCESSING
     allData_filt = filterData(allData, fs, fc);
     allData_filt2 = processForceData(allData_filt);
     cd(currentDir);  % 切换回脚本目录
-    save(fullfile(currentDir, 'processed_data.mat'), 'allData_filt2', '-v7.3');
+    save(fullfile(projectDataDir, 'processed_data.mat'), 'allData_filt2', '-v7.3');
     fprintf('✓ 数据处理完成并已保存\n');
 else
     % 检查数据是否已经加载到工作空间
@@ -101,8 +107,8 @@ else
     else
         % 加载已处理的数据
         fprintf('\n📁 加载已处理的数据...\n');
-        if exist(fullfile(currentDir, 'processed_data.mat'), 'file')
-            load(fullfile(currentDir, 'processed_data.mat'), 'allData_filt2');
+        if exist(fullfile(projectDataDir, 'processed_data.mat'), 'file')
+            load(fullfile(projectDataDir, 'processed_data.mat'), 'allData_filt2');
             fprintf('✓ 数据加载成功\n');
         else
             error('未找到已处理的数据文件！请设置 RUN_DATA_PROCESSING = true 来处理原始数据');
@@ -176,7 +182,7 @@ if USE_PHYSICAL_ANGLE_MODEL
 else
     predictions_filename = 'predictions_results.mat';
 end
-predictions_file = fullfile(currentDir, predictions_filename);
+predictions_file = fullfile(projectDataDir, predictions_filename);
 
 % 智能决定是否运行预测
 if RUN_PREDICTION
@@ -446,7 +452,7 @@ fprintf('✓ 性能评估完成（使用与绘图相同的实验数据）\n');
 %% 8. 导出结果
 fprintf('\n=== 导出结果 ===\n');
 
-exportDir = fullfile(currentDir, 'export_results');
+exportDir = projectRunsDir;
 if ~exist(exportDir, 'dir')
     mkdir(exportDir);
 end

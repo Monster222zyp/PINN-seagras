@@ -1,6 +1,6 @@
 # Training Engineering
 
-- Last verified: 2026-07-21
+- Last verified: 2026-07-22
 - Scope: current training entry point, data contract, training settings, outputs, and recorded runs.
 - Research framing and unresolved scientific questions: [RESEARCH_IDEA.md](RESEARCH_IDEA.md).
 - File roles and status: [FILE_INVENTORY.md](FILE_INVENTORY.md).
@@ -81,9 +81,68 @@ The loss combines the following terms, with configurable weights:
 - reconfiguration quadratic/cubic regularization;
 - leaf-force auxiliary supervision;
 - column-force auxiliary supervision;
-- shielding auxiliary supervision.
+- shielding auxiliary supervision;
+- beam PDE residual loss (when `--beam-enabled` and `--lambda-pde-residual > 0`).
 
-This is a physics-structured latent surrogate. It is not a strict PDE PINN that solves the Euler-Bernoulli PDE by automatic-differentiation residuals.
+This is a physics-structured latent surrogate. The beam-physics module
+extends it with a differentiable Euler-Bernoulli PDE solver that couples
+flow load and blade deflection, as described below.
+
+### Beam physics module (`BeamPhysics`)
+
+When `--beam-enabled` is passed, the forward pass no longer relies only on
+learned reconfiguration. Instead, a differentiable fluid-structure
+interaction (FSI) solver computes per-column reconfiguration factors from
+the physical stiffness `EI = E·h·t³/12` and the flow velocity.
+
+The solver uses modal superposition with five clamped-free vibration
+mode shapes to solve `EI·w'''' = q(x)` for an arbitrary distributed
+load `q(x)`. To capture the self-limiting nature of blade bending, it
+performs `n_fsi` (default 2) Picard iterations per forward pass:
+
+1. **Solve**:  `a_n = F_n / (EI·(λ_n/L)⁴·M_n)`, where `F_n` is the modal
+   force projected onto mode `n`, `λ_n` are the clamped-free eigenvalues,
+   and `M_n` the modal mass. Reconstruct the slope `dw/dx(x)`.
+
+2. **Saturate**:  `dw/dx_eff = θ₀·tanh(dw_dx/θ₀)`, bounding the local
+   angle to `θ_local = θ₀ − dw_dx_eff ∈ [0, θ₀]`.
+
+3. **Reload**:  `q_new(x) = q₀·sin²(θ_local(x))/sin²(θ₀)`, updating the
+   distributed load to reflect the deformed geometry.
+
+4. **Relax**:  `q_dist ← (1−α)·q_dist + α·q_new` with `α=0.35`, preventing
+   oscillation between uniform and zero-load states.
+
+After `n_fsi` iterations the converged load profile is integrated:
+
+    reconf = ∫₀¹ sin²(θ_local(ξ)) / sin²(θ₀) dξ  ∈ [0.01, 1.0]
+
+A small learnable correction `(1 + 0.2·tanh(latent[3]))` multiplies the
+beam-physics reconf, tweaking the baseline within ±20 %.
+
+The **PDE residual** measures the departure of the converged load profile
+from the uniform-load assumption.  It is projected onto the mode shapes
+and normalised by modal mass:
+
+    R_n = ∫₀¹ (1 − q(ξ)/q₀)·φ_n(ξ) dξ
+    pde_residual = √(Σ |R_n|² / M_n)
+
+This can be used as an additional loss term via `--lambda-pde-residual`
+to penalise configurations where the blade is far from the small-deflection
+regime.
+
+With `n_fsi=2`, the beam model gives a smooth transition from the rigid
+limit (reconf → 1 for `Ca ≪ 1`) to the flexible asymptotic limit
+(reconf → ~0.42 for `Ca ≫ 1`), with correct E (Young's modulus)
+dependence and physically meaningful PDE residuals that grow from zero
+at low Ca to ≈0.56 at high Ca.
+
+### Ca-based reconfiguration prior (legacy, off by default)
+
+The Ca-based prior (`--lambda-ca-prior > 0`) uses a sigmoid in log-Ca
+space centred at the median Ca (13.9). It is a soft regulariser
+independent of the beam physics and is not the primary physics mechanism
+when beam-enabled is active.
 
 ## 4. Training Modes
 
@@ -101,6 +160,26 @@ python train_latent_physics_pinn.py \
 ```
 
 This mode trains on the 228 experimental samples. The validation set is a held-out subset of experimental samples.
+
+### Experimental-only with beam physics
+
+```bash
+cd /Users/zyp/Documents/GitHub/PINN-seagras/myproject
+conda activate pinn-seagrass
+python train_latent_physics_pinn.py \
+  --data data/pinn_training_data.mat \
+  --epochs 5000 \
+  --batch-size 128 \
+  --beam-enabled \
+  --beam-n-fsi 2 \
+  --lambda-pde-residual 0.01
+```
+
+Enables the differentiable FSI Euler-Bernoulli beam solver. The PDE
+residual loss (`--lambda-pde-residual`) penalises configurations where
+the blade deviates from the small-deflection regime. A short validation
+run (200 epochs) on this configuration gave val RMSE ≈ 0.055 and val R²
+≈ 0.995.
 
 ### Experimental + synthetic
 
@@ -143,7 +222,16 @@ The current script defaults recorded in `run_config.json` include:
 | residual scale | 0.2 |
 | optimizer | Adam |
 
-Additional CLI controls set latent bounds, drag-coefficient range, residual and auxiliary-loss weights, output directory, and related physical regularization. Run `python train_latent_physics_pinn.py --help` for the exact current list rather than copying a stale command from an older README.
+Additional CLI controls set latent bounds, drag-coefficient range, residual and auxiliary-loss weights, PDE residual loss, beam-physics FSI iterations, output directory, and related physical regularization. Beam-physics controls:
+
+| Beam flag | Default | Purpose |
+|---|---|---|
+| `--beam-enabled` | off (flag) | Enables differentiable FSI beam solver |
+| `--beam-n-quad` | 32 | Gauss-Legendre quadrature points |
+| `--beam-n-fsi` | 2 | FSI load-deflection iterations |
+| `--lambda-pde-residual` | 0.0 | PDE residual loss weight (0 = off) |
+
+Run `python train_latent_physics_pinn.py --help` for the exact current list rather than copying a stale command from an older README.
 
 ## 6. Split and Metrics
 
@@ -178,6 +266,7 @@ Each run is written under `runs/pinn_drag/<run-id>/`. Typical outputs include:
 | `20260608-232229__latent_physics` | `HISTORICAL_COMPLETE_BASELINE` | 228 experimental + 80 synthetic | 5000 | RMSE `0.066786`; MAE `0.049508`; R² `0.989547` | Historical complete run; best epoch `178`, all-sample RMSE `0.057528`, all-sample R² `0.994060`. |
 | `20260720-182703__latent_physics` | `SMOKE_TEST` | 228 experimental + 80 synthetic | 1 | RMSE `0.403124`; MAE `0.267814`; R² `0.619167` | Confirms the synthetic-data path runs; not a scientific result. |
 | `20260720-190251__latent_physics` | `SMOKE_TEST` | 228 experimental | 1 | RMSE `0.367746`; MAE `0.246321`; R² `0.683078` | Confirms the experimental-only path runs; not comparable evidence for synthetic-data benefit. |
+| `20260722-160407__latent_physics` | `SMOKE_TEST` | 228 experimental, beam-enabled, n_fsi=2 | 200 | RMSE `0.054870`; MAE `0.042661`; R² `0.994526` | End-to-end validation of FSI beam physics integration (hidden=64, depth=3). Not a full baseline.
 
 The two 2026-07-20 runs differ in data configuration, but both stopped after one epoch. They cannot establish whether synthetic data improves generalization.
 

@@ -1,0 +1,49 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-200649__latent_physics
+Data file: data/pinn_training_data.mat
+Synthetic data file: data/pinn_training_data_synth.mat
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+[0001/4000] train_force=9.149 val_force=0.33
+[0100/4000] train_force=0.01302 val_force=0.0253
+[0200/4000] train_force=0.01348 val_force=0.02294
+[0300/4000] train_force=0.01834 val_force=0.1245
+[0400/4000] train_force=0.007293 val_force=0.08666
+[0500/4000] train_force=0.007304 val_force=0.2483
+[0600/4000] train_force=0.006104 val_force=0.2383
+[0700/4000] train_force=0.005091 val_force=0.1579
+[0800/4000] train_force=0.004732 val_force=0.1521
+[0900/4000] train_force=0.004571 val_force=0.1604
+[1000/4000] train_force=0.004442 val_force=0.1655
+[1100/4000] train_force=0.004362 val_force=0.1685
+[1200/4000] train_force=0.004315 val_force=0.1694
+[1300/4000] train_force=0.004258 val_force=0.1712
+[1400/4000] train_force=0.004221 val_force=0.1717
+[1500/4000] train_force=0.004187 val_force=0.1728
+[1600/4000] train_force=0.004121 val_force=0.1723
+[1700/4000] train_force=0.004057 val_force=0.1733
+[1800/4000] train_force=0.003982 val_force=0.1728
+[1900/4000] train_force=0.003887 val_force=0.1733
+[2000/4000] train_force=0.003803 val_force=0.1719
+[2100/4000] train_force=0.003724 val_force=0.1694
+[2200/4000] train_force=0.003669 val_force=0.1683
+[2300/4000] train_force=0.003617 val_force=0.1644
+[2400/4000] train_force=0.003587 val_force=0.1633
+[2500/4000] train_force=0.003559 val_force=0.1602
+[2600/4000] train_force=0.00353 val_force=0.158
+[2700/4000] train_force=0.003507 val_force=0.1555
+[2800/4000] train_force=0.003484 val_force=0.1529
+[2900/4000] train_force=0.003469 val_force=0.1522
+[3000/4000] train_force=0.003443 val_force=0.1501
+[3100/4000] train_force=0.003427 val_force=0.1477
+[3200/4000] train_force=0.003401 val_force=0.1458
+[3300/4000] train_force=0.003389 val_force=0.1448
+[3400/4000] train_force=0.003363 val_force=0.1437
+[3500/4000] train_force=0.003346 val_force=0.1409
+[3600/4000] train_force=0.003327 val_force=0.1391
+[3700/4000] train_force=0.00329 val_force=0.1367
+[3800/4000] train_force=0.003277 val_force=0.1353
+[3900/4000] train_force=0.003253 val_force=0.1337
+[4000/4000] train_force=0.00324 val_force=0.1305
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-200649__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.055283524096012115, 'mae': 0.04162120074033737, 'r2': 0.9945144057273865}, 'train': {'rmse': 0.05165369063615799, 'mae': 0.03873909264802933, 'r2': 0.9955577254295349}, 'val': {'rmse': 0.06496738642454147, 'mae': 0.050267502665519714, 'r2': 0.9901087880134583}, 'synthetic': {'rmse': 0.12324060499668121, 'mae': 0.07267805188894272, 'r2': 0.9755961298942566}, 'experimental_sample_count': 228, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.07347617886568371, 'best_epoch': 360, 'best_val_force': 0.016540441662073135}
+Training complete.

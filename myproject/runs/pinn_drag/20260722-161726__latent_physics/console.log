@@ -1,0 +1,15 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-161726__latent_physics
+Data file: data/pinn_training_data.mat
+Excluding configs [0, 1, 2, 3]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.150; synthetic samples stay in train only
+Beam physics enabled: False  (λ_pde=0.0)
+[0001/500] train_force=2.479 val_force=0.2433
+[0100/500] train_force=0.03268 val_force=0.05267
+[0200/500] train_force=0.027 val_force=0.0145
+[0300/500] train_force=0.0452 val_force=0.0463
+[0400/500] train_force=0.02253 val_force=0.01793
+[0500/500] train_force=0.0237 val_force=0.01968
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-161726__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.07182738929986954, 'mae': 0.05358462035655975, 'r2': 0.9820443987846375}, 'train': {'rmse': 0.07579071074724197, 'mae': 0.05744399502873421, 'r2': 0.9800543189048767}, 'val': {'rmse': 0.04333319142460823, 'mae': 0.0319385752081871, 'r2': 0.9933742880821228}, 'synthetic': None, 'experimental_sample_count': 152, 'synthetic_sample_count': 0, 'mean_residual_ratio': 0.1859579686271517, 'best_epoch': 173, 'best_val_force': 0.011095084249973297}
+Training complete.

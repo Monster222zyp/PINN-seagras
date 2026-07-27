@@ -1,0 +1,36 @@
+{
+  "cycle_id": 10,
+  "stage": "posttrain",
+  "status": "rolled_back_validation_degradation",
+  "accepted_for_next_cycle": false,
+  "candidate_summary": {
+    "candidate_count": 480,
+    "filter_pass_count": 479,
+    "selected_count": 80,
+    "rejection_counts": {
+      "accepted": 80,
+      "residual_ratio": 1,
+      "valid_not_selected": 399
+    },
+    "residual_ratio": {
+      "mean": 0.0541573092341423,
+      "min": 0.0002990525390487164,
+      "max": 0.27823325991630554,
+      "p95": 0.1344723254442215
+    },
+    "confidence_score": {
+      "mean": 0.7747828364372253,
+      "min": 0.14260509610176086,
+      "max": 0.9979222416877747
+    }
+  },
+  "experimental_validation": {
+    "rmse": 0.06534178555011749,
+    "mae": 0.04994075372815132,
+    "r2": 0.989994466304779
+  },
+  "previous_validation_rmse": 0.06380821019411087,
+  "validation_acceptance_threshold": 0.06443422928452491,
+  "pseudo_memory_samples": 640,
+  "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-121805__iterative_self_training/cycle_10_posttrain/rejected_model.pt"
+}

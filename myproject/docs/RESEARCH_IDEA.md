@@ -1,6 +1,6 @@
 # Research Idea and Discussion Notes
 
-- Last verified: 2026-07-21
+- Last verified: 2026-07-22
 - Scope: research question, paper narrative, hypotheses, and unresolved scientific decisions.
 - Training commands, data shapes, and run metrics are maintained in [TRAINING_ENGINEERING.md](TRAINING_ENGINEERING.md).
 - File status and code ownership are maintained in [FILE_INVENTORY.md](FILE_INVENTORY.md).
@@ -53,6 +53,15 @@ The current Python entry point is `train_latent_physics_pinn.py`. Its model is b
 
 It should not be described as a strict PDE PINN in the narrow sense. The model does not use automatic differentiation to solve the Euler-Bernoulli equation as a residual constraint during neural training. Instead, it embeds a differentiable drag decomposition and learns bounded, interpretable latent corrections around that structure.
 
+**Update 2026-07-22**: the `--beam-enabled` flag adds a differentiable
+FSI Euler-Bernoulli beam solver (`BeamPhysics` class) that couples load
+and deflection through 2–3 Picard iterations with under-relaxation.
+This brings beam PDE physics into the loop: the reconfiguration factor
+is now computed from `EI·w'''' = q(x)` via modal superposition rather
+than learned from data alone. The PDE residual can be used as a loss
+term via `--lambda-pde-residual`. See
+[TRAINING_ENGINEERING.md](TRAINING_ENGINEERING.md) for details.
+
 The encoder uses engineering features and a stack of `Linear + SiLU + LayerNorm` blocks. The latent head has 10 outputs. These control or diagnose quantities such as:
 
 - effective stem drag coefficient;
@@ -103,12 +112,17 @@ The following labels are used throughout this document:
 - **FACT**: the current latent model has a 10-output latent head and predicts total force through a structured forward pass.
 - **FACT**: validation in the recorded latent runs is experimental-only, including when synthetic samples are enabled for training.
 - **FACT**: a 5000-epoch historical run and two 1-epoch smoke tests are present; their exact metrics are recorded in [TRAINING_ENGINEERING.md](TRAINING_ENGINEERING.md).
+- **FACT**: a differentiable FSI Euler-Bernoulli beam solver (`BeamPhysics`) is integrated via `--beam-enabled`. It computes reconfiguration from modal superposition + load redistribution, not from learned coefficients alone.
+- **FACT**: the PDE residual (modal projection of the load redistribution) is available as a loss term via `--lambda-pde-residual`. A 200-epoch smoke test (hidden=64, depth=3) with beam enabled gives val RMSE ≈ 0.055, val R² ≈ 0.995.
 
 ### Current interpretations
 
 - **INTERPRETATION**: the MATLAB solver is a lower-fidelity mechanistic teacher, while experiments are the primary reference for validation.
 - **INTERPRETATION**: the latent variables are most useful as constrained diagnostic quantities rather than independently proven material properties.
+- **INTERPRETATION**: the MATLAB solver is a lower-fidelity mechanistic teacher, while experiments are the primary reference for validation.
+- **INTERPRETATION**: the latent variables are most useful as constrained diagnostic quantities rather than independently proven material properties.
 - **INTERPRETATION**: the main methodological value is the coupling of mechanism, data, and interpretable decomposition rather than the use of the word PINN.
+- **INTERPRETATION**: with `--beam-enabled`, the model now embeds a genuine Euler-Bernoulli PDE solver (via modal superposition + FSI iteration), moving it closer to a true physics-informed surrogate while keeping the latent corrections.
 
 ### Unverified hypotheses
 
@@ -179,6 +193,18 @@ The following issues are deliberately recorded instead of being silently resolve
 - **DECISION**: every cycle is capped relative to the global-best validation RMSE, avoiding compounded degradation across accepted cycles.
 - **TODO**: reserve an untouched configuration/material-level final test set and compare experimental-only, MATLAB-synthetic, surrogate self-training, restart, and weight-continuation modes over multiple seeds.
 - **PREFERRED EXTENSION**: use the surrogate only to propose informative candidates, then label them with the MATLAB physical solver. Solver-generated labels add model-based physical information; surrogate-generated labels do not.
+
+### 2026-07-22: differentiable beam physics (FSI Euler-Bernoulli)
+
+- **FACT**: the `BeamPhysics` class was rewritten from a single-pass closed-form solution (which gave unphysical reconf → 0 at moderate Ca) to a modal-superposition FSI iteration.
+- **FACT**: with `n_fsi=2`, the module shows correct self-limiting behaviour: stiff materials at low Ca → reconf ≈ 1; soft materials at high Ca → reconf ≈ 0.42 (root-load asymptotic limit). The PDE residual grows smoothly from 0 (uniform load) to ~0.56 (fully redistributed load).
+- **FACT**: quartz-point mapping was also corrected — `leggauss` coordinates are now mapped from [-1, 1] to [0, 1] with proper weight re-scaling.
+- **FACT**: a 200-epoch beam-enabled smoke test (hidden=64, depth=3, experimental only) converged to val RMSE 0.055 / val R² 0.995.
+- **DECISION**: default `n_fsi=2` (good balance of accuracy vs compute; within ~5 % of the converged n_fsi=5 solution).
+- **DECISION**: under-relaxation α=0.35 prevents oscillation between uniform and zero-load states.
+- **TODO**: run a full 5000-epoch beam-enabled baseline on experimental data and compare with the legacy no-beam route.
+- **TODO**: evaluate configuration-holdout generalization with beam physics vs without.
+- **TODO**: the gradient scale ∂reconf/∂E is ~4×10⁻⁹ for the tested case; check that the beam correction and residual can still compensate when the beam gradient is small.
 
 ## 10. Scientific Interpretation of the Iterative Route
 

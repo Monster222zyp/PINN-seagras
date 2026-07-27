@@ -1,0 +1,35 @@
+{
+  "cycle_id": 2,
+  "stage": "posttrain",
+  "status": "accepted",
+  "accepted_for_next_cycle": true,
+  "candidate_summary": {
+    "candidate_count": 80,
+    "filter_pass_count": 80,
+    "selected_count": 40,
+    "rejection_counts": {
+      "accepted": 40,
+      "valid_not_selected": 40
+    },
+    "residual_ratio": {
+      "mean": 0.07976441830396652,
+      "min": 0.00024890279746614397,
+      "max": 0.1998845338821411,
+      "p95": 0.16482390463352203
+    },
+    "confidence_score": {
+      "mean": 0.6856220960617065,
+      "min": 0.368091881275177,
+      "max": 0.9987562298774719
+    }
+  },
+  "experimental_validation": {
+    "rmse": 0.038947541266679764,
+    "mae": 0.0337420292198658,
+    "r2": 0.9972419142723083
+  },
+  "previous_validation_rmse": 0.04181668534874916,
+  "validation_acceptance_threshold": 0.04265301905572415,
+  "pseudo_memory_samples": 80,
+  "attempted_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-161750__iterative_self_training/cycle_02_posttrain/model.pt"
+}

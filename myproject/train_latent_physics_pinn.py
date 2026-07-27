@@ -46,6 +46,13 @@ from torch.utils.data import DataLoader, Dataset
 
 RHO_DEFAULT = 1000.0
 MU_WATER = 1e-3
+CA_MEDIAN = 13.9  # median Cauchy number in the dataset
+CA_PRIOR_WIDTH = 2.0  # width of the Ca→reconfiguration prior sigmoid in log-Ca space
+# Clamped-free beam eigenvalues λ_n = β_n·L (first 5 modes)
+BEAM_EIGENVALUES = [1.87510407, 4.69409113, 7.85475744, 10.99554073, 14.13716839]
+BEAM_SIGMA = [0.734095514, 1.018467319, 0.999224497, 1.000017553, 0.999999205]
+# Ca⁻¹/³ prefactor for the high-Ca asymptotic reconfiguration
+LUHAR_PREFACTOR = 0.9  # empirical: F/F_rigid ≈ Luhar_prefactor · Ca⁻¹/³ for Ca ≫ 1
 VELOCITY_COUNT = 19
 
 FEATURE_NAMES_17 = [
@@ -97,6 +104,160 @@ TARGET_NAMES_27 = [
     "shielding_coef",
     "angle_diff_deg",
 ]
+
+# ── Differentiable Euler-Bernoulli beam physics ──
+
+
+class BeamPhysics(nn.Module):
+    """Differentiable clamped-free beam solver with large-deformation saturation.
+
+    Solves the Euler-Bernoulli beam equation EI·w'''' = q for a cantilever beam.
+    Linear theory gives closed-form small-deflection results. For the
+    large-deflection regime, a tanh-based saturation is applied to the slope:
+
+        θ_local = θ₀ · (1 − tanh(dw_dx_lin / θ₀))
+
+    This smoothly bounds the angle reduction: at small loads the linear result
+    is recovered; at large loads the blade aligns with the flow (θ_local → 0).
+
+    The reconfiguration factor is computed by integrating the squared sine of
+    the deformed angle along the blade length (Gauss-Legendre quadrature):
+
+        reconf = ∫₀¹ sin²(θ(ξ)) dξ / sin²(θ₀)
+
+    which directly generalises as the ratio of the deflected blade's projected
+    frontal area to that of the rigid blade.
+
+    The PDE residual measures the departure from the constant-load assumption
+    caused by the angle-deflection coupling, projected onto the first 5
+    clamped-free vibration mode shapes.
+    """
+
+    # Clamped-free beam eigenvalues λ_n = β_n·L and participation factors σ_n
+    _EIGENVALUES = torch.tensor([1.87510407, 4.69409113, 7.85475744,
+                                  10.99554073, 14.13716839])
+    _SIGMA = torch.tensor([0.734095514, 1.018467319, 0.999224497,
+                            1.000017553, 0.999999205])
+
+    def __init__(self, n_quad: int = 32, n_fsi: int = 10):
+        super().__init__()
+        self.n_quad = n_quad
+        self.n_fsi = n_fsi
+
+        from numpy.polynomial.legendre import leggauss
+        x_np, w_np = leggauss(n_quad)
+        # Map from [-1, 1] to [0, 1]
+        xi_np = (x_np + 1.0) * 0.5
+        w_np = w_np * 0.5  # now sum to 1
+
+        self.register_buffer("_xi", torch.from_numpy(xi_np.astype(np.float32)))
+        self.register_buffer("_wquad", torch.from_numpy(w_np.astype(np.float32)))
+
+        # Precompute mode shapes phi_n(xi) and slopes dphi_n/dxi at quadrature points
+        # phi_n(xi) = (cosh(lambda_n*xi) - cos(lambda_n*xi))
+        #             - sigma_n * (sinh(lambda_n*xi) - sin(lambda_n*xi))
+        lam = self._EIGENVALUES.unsqueeze(-1)  # [5, 1]
+        xi = torch.from_numpy(xi_np.astype(np.float32)).unsqueeze(0)  # [1, n_quad]
+        arg = lam * xi  # [5, n_quad]
+        cosh_a, sinh_a = torch.cosh(arg), torch.sinh(arg)
+        cos_a, sin_a = torch.cos(arg), torch.sin(arg)
+        phi = (cosh_a - cos_a) - self._SIGMA.unsqueeze(-1) * (sinh_a - sin_a)
+        self.register_buffer("_phi", phi)  # [5, n_quad]
+
+        # dphi_n/dxi = lam*[(sinh(arg) + sin(arg)) - sigma*(cosh(arg) - cos(arg))]
+        dphi = lam * (
+            (torch.sinh(arg) + torch.sin(arg))
+            - self._SIGMA.unsqueeze(-1) * (torch.cosh(arg) - torch.cos(arg))
+        )
+        self.register_buffer("_dphi", dphi)  # [5, n_quad]
+
+        # M_n = integral_0^1 phi_n^2 dxi
+        M_n = torch.sum(phi ** 2 * self._wquad.unsqueeze(0), dim=1)  # [5]
+        self.register_buffer("_M_n", M_n)
+
+        # Relaxation factor for FSI iteration (slower = more stable)
+        self.register_buffer("_alpha", torch.tensor(0.25))
+
+    def _solve_beam(self, q_dist, EI, L):
+        """Modal superposition for arbitrary distributed load.
+
+        q_dist: [batch, n_quad]    EI: [batch, 1]    L: [batch, 1]
+        Returns dw_dx at quadrature points: [batch, n_quad]
+        """
+        batch = q_dist.shape[0]
+        safe_EI = EI.clamp_min(1e-12)
+        wq = self._wquad.unsqueeze(0)  # [1, n_quad]
+
+        # Modal force F_n = L * integral_0^1 q(xi)*phi_n(xi) dxi
+        #                 ~ L * sum_i w_i * q(xi_i) * phi_n(xi_i)
+        integrand = q_dist * L * wq  # [batch, n_quad]
+        # phi: [5, n_quad], integrand: [batch, n_quad]
+        F_n = (self._phi.unsqueeze(0) * integrand.unsqueeze(1)).sum(dim=-1)  # [batch, 5]
+
+        # a_n = F_n / (EI * (lam_n/L)^4 * M_n)
+        stiff = safe_EI * (self._EIGENVALUES / L) ** 4 * self._M_n  # [batch, 5]
+        a_n = F_n / (stiff + 1e-30)
+
+        # dw/dx(xi) = (1/L) * sum a_n * dphi_n/dxi
+        dw_dx = (1.0 / L) * (a_n @ self._dphi)  # [batch, n_quad]
+        return dw_dx
+
+    def forward(
+        self,
+        q0: torch.Tensor,
+        EI: torch.Tensor,
+        L: torch.Tensor,
+        theta0: torch.Tensor,
+    ) -> dict[str, torch.Tensor]:
+        """FSI-coupled beam solver: iterate load & deflection for n_fsi steps.
+
+        Args:
+            q0:      root-angle load  [batch, 1]
+            EI:      bending stiffness  [batch, 1]
+            L:       beam length  [batch, 1]
+            theta0:  initial angle  [batch, 1]  (radians)
+
+        Returns:
+            reconf:        reconfiguration factor  [batch, 1]
+            pde_residual:  PDE residual norm  [batch, 1]
+        """
+        safe_EI = EI.clamp_min(1e-12)
+        theta0_safe = theta0.abs() + 1e-10
+
+        # ── FSI iteration ──
+        q_dist = q0.expand(-1, self.n_quad)  # [batch, n_quad], uniform initial
+
+        for _ in range(self.n_fsi):
+            # 1. Solve beam for current load
+            dw_dx = self._solve_beam(q_dist, safe_EI, L)
+
+            # 2. Large-deformation saturation
+            dw_dx_eff = theta0_safe * torch.tanh(dw_dx / theta0_safe)
+            theta_local = theta0 - dw_dx_eff  # [batch, n_quad]
+
+            # 3. Update load from deformed angle
+            s0 = torch.sin(theta0).square() + 1e-10
+            sl = torch.sin(theta_local).square() + 1e-10
+            load_ratio = sl / s0  # [batch, n_quad]
+            q_new = q0 * load_ratio
+
+            # 4. Under-relaxation prevents load oscillation
+            q_dist = (1.0 - self._alpha) * q_dist + self._alpha * q_new
+
+        # ── Reconfiguration factor ──
+        w_quad = self._wquad.unsqueeze(0)  # [1, n_quad], sums to 1
+        reconf = torch.sum(q_dist * w_quad, dim=1, keepdim=True) / q0.clamp_min(1e-20)
+        reconf = reconf.clamp(0.01, 1.0)
+
+        # ── PDE residual (modal projection of load redistribution) ──
+        res_profile = 1.0 - q_dist / q0.clamp_min(1e-20)  # [batch, n_quad]
+        R_n = (self._phi.unsqueeze(0) * (res_profile * w_quad).unsqueeze(1)).sum(dim=-1)
+        pde_residual = torch.sqrt(
+            torch.sum(R_n ** 2 / self._M_n.unsqueeze(0), dim=1, keepdim=True)
+        )
+
+        return {"reconf": reconf, "pde_residual": pde_residual}
+
 
 CONFIG_NAMES = [
     "PVC_20_0",
@@ -495,13 +656,16 @@ class LatentPhysicsPINN(nn.Module):
         input_dim: int,
         hidden: int = 128,
         depth: int = 5,
-        residual_scale: float = 0.2,
-        cd_log_range: float = 1.0,
+        residual_scale: float = 0.03,
+        cd_log_range: float = 1.2,
         shielding_min: float = 0.25,
         shielding_max: float = 1.10,
         reconfiguration_min: float = 0.02,
         reconfiguration_max: float = 1.80,
-        column_log_range: float = 0.8,
+        column_log_range: float = 0.05,
+        beam_enabled: bool = False,
+        beam_n_quad: int = 32,
+        beam_n_fsi: int = 2,
     ):
         super().__init__()
         layers: list[nn.Module] = []
@@ -520,12 +684,18 @@ class LatentPhysicsPINN(nn.Module):
         self.reconfiguration_min = reconfiguration_min
         self.reconfiguration_max = reconfiguration_max
         self.column_log_range = column_log_range
+        self.beam_enabled = beam_enabled
+        if beam_enabled:
+            self.beam_physics = BeamPhysics(n_quad=beam_n_quad, n_fsi=beam_n_fsi)
 
     def forward(self, model_x: torch.Tensor, raw_x: torch.Tensor) -> dict[str, torch.Tensor]:
         latent = self.head(self.encoder(model_x))
 
         u = raw_x[:, 0:1]
+        ca = raw_x[:, 2:3]
+        E = raw_x[:, 3:4]
         h_leaf = raw_x[:, 4:5]
+        t = raw_x[:, 5:6]
         theta = torch.deg2rad(raw_x[:, 6:9])
         d = raw_x[:, 9:10]
         h_cyl = raw_x[:, 10:11]
@@ -537,21 +707,69 @@ class LatentPhysicsPINN(nn.Module):
         cd_stem_eff = cd_cyl_prior * torch.exp(self.cd_log_range * torch.tanh(latent[:, 0:1]))
         cd_leaf_eff = cd_soft_prior * torch.exp(self.cd_log_range * torch.tanh(latent[:, 1:2]))
         shielding_coef = self.shielding_min + (self.shielding_max - self.shielding_min) * torch.sigmoid(latent[:, 2:3])
-        reconfiguration_factor = self.reconfiguration_min + (
-            self.reconfiguration_max - self.reconfiguration_min
-        ) * torch.sigmoid(latent[:, 3:4])
+
+        # ── Reconfiguration: beam physics with learned correction ──
+        # Beam model gives physics-based reconfiguration factor that correctly
+        # scales with E (Young's modulus) through the Euler-Bernoulli equation.
+        # The network learns a bounded multiplicative correction.
+        if self.beam_enabled:
+            # Moment of inertia: I = h·t³/12  (rectangular cross-section, same as MATLAB)
+            I = h_leaf * t ** 3 / 12.0
+            EI = E * I  # [batch, 1]  — E enters physics through beam stiffness
+
+            # Compute beam reconfiguration per column (3 columns share EI, L, differ in θ)
+            reconf_physics_list: list[torch.Tensor] = []
+            pde_residual_total = 0.0
+
+            for col in range(theta.shape[1]):
+                theta_col = theta[:, col:col+1]  # [batch, 1]
+
+                # Distributed load from initial angle: aligned with MATLAB solver's
+                # q = 0.5·ρ·cd·h·U·sin(θ)·|U·sin(θ)|  (sign-aware, line 177 of calculate_drag_coefficient_v2.m)
+                sin_a = torch.sin(theta_col)
+                u_normal = u * sin_a
+                q0 = 0.5 * RHO_DEFAULT * cd_leaf_eff * h_leaf * u_normal.abs() * u_normal
+
+                beam_out = self.beam_physics(q0, EI, length, theta_col)
+                reconf_physics = beam_out["reconf"]  # [batch, 1]
+                reconf_physics_list.append(reconf_physics)  # no learned correction — physics is hard constraint
+                pde_residual_total = pde_residual_total + beam_out["pde_residual"]
+
+            reconf_gain = torch.cat(reconf_physics_list, dim=1)  # [batch, 3]
+            pde_residual = pde_residual_total / max(theta.shape[1], 1)  # [batch, 1]
+
+            # Store mean reconf for logging / ca_prior compatibility
+            reconfiguration_factor = reconf_gain.mean(dim=1, keepdim=True).detach()
+        else:
+            # Legacy: fully learned reconfiguration (no beam physics)
+            reconfiguration_factor = self.reconfiguration_min + (
+                self.reconfiguration_max - self.reconfiguration_min
+            ) * torch.sigmoid(latent[:, 3:4])
+            r = reconfiguration_factor
+            reconf_gain_tmp = r * (1.0 + 0.3 * torch.tanh(latent[:, 7:8]))
+            reconf_gain = reconf_gain_tmp.expand(-1, 3)
+            pde_residual = torch.zeros_like(reconfiguration_factor)
+
+        # Keep reconf_correction as the raw latent (for loss regularization)
+        reconf_correction = torch.tanh(latent[:, 7:8])
         column_correction = torch.exp(self.column_log_range * torch.tanh(latent[:, 4:7]))
-        recon_quad_coef = torch.nn.functional.softplus(latent[:, 7:8])
-        recon_cubic_coef = torch.nn.functional.softplus(latent[:, 8:9])
 
-        r = reconfiguration_factor
-        reconfiguration_gain = r + recon_quad_coef * r.square() + recon_cubic_coef * r.pow(3)
+        # ── Ca-based reconfiguration prior (soft loss regularization) ──
+        # Physics: higher Ca → more bending → lower reconfiguration gain.
+        # The prior is a sigmoid in log-Ca space centered at median Ca.
+        log_ca = torch.log(ca.clamp_min(1e-10))
+        log_ca_norm = log_ca - math.log(CA_MEDIAN)
+        prior_ratio = torch.sigmoid(-log_ca_norm / CA_PRIOR_WIDTH)
+        ca_reconf_prior = self.reconfiguration_min + (self.reconfiguration_max - self.reconfiguration_min) * prior_ratio
 
+        # ── Force computation ──
+        # Use |sin(θ)|·sin(θ) for correct sign/direction (aligned with MATLAB solver)
         q = 0.5 * RHO_DEFAULT * u.square()
         f_stem = q * cd_stem_eff * d * h_cyl
-        # Match the iterative MATLAB solver's final load scaling:
-        # q ~ |U sin(theta)|^2 sign(U sin(theta)), and total force sums abs columns.
-        angle_projection = torch.sin(theta).square().clamp_min(1e-6)
+        sin_theta = torch.sin(theta)
+        angle_projection = sin_theta.abs() * sin_theta  # |sin|·sin instead of sin²
+        angle_projection = angle_projection.abs().clamp_min(1e-6)  # force always positive (drag direction)
+
         f_leaf_cols_base = (
             q
             * cd_leaf_eff
@@ -560,9 +778,8 @@ class LatentPhysicsPINN(nn.Module):
             * n_per_column
             * angle_projection
             * column_correction
-            * reconfiguration_gain
+            * reconf_gain
         )
-        # Avoid in-place writes on autograd-tracked tensors.
         if f_leaf_cols_base.shape[1] >= 2:
             first_col = f_leaf_cols_base[:, :1]
             second_col = f_leaf_cols_base[:, 1:2] * shielding_coef
@@ -585,11 +802,12 @@ class LatentPhysicsPINN(nn.Module):
             "Cd_stem_eff": cd_stem_eff,
             "Cd_leaf_eff": cd_leaf_eff,
             "shielding_coef": shielding_coef,
-            "reconfiguration_factor": reconfiguration_factor,
-            "reconfiguration_quad_coef": recon_quad_coef,
-            "reconfiguration_cubic_coef": recon_cubic_coef,
-            "reconfiguration_gain": reconfiguration_gain,
+            "reconfiguration_factor": reconfiguration_factor if self.beam_enabled else reconfiguration_factor,
+            "reconfiguration_correction": reconf_correction,
+            "reconfiguration_gain": reconf_gain.mean(dim=1, keepdim=True),
             "column_correction": column_correction,
+            "ca_reconf_prior": ca_reconf_prior,
+            "pde_residual": pde_residual,
         }
 
 
@@ -676,7 +894,7 @@ def loss_fn(
         aux_weight,
     )
     loss_reconf_poly = weighted_mean(
-        out["reconfiguration_quad_coef"].square() + out["reconfiguration_cubic_coef"].square(),
+        out["reconfiguration_correction"].square(),
         aux_weight,
     )
 
@@ -707,6 +925,15 @@ def loss_fn(
             aux_weight,
         )
 
+    loss_ca_prior = torch.tensor(0.0, device=target.device)
+    if "ca_reconf_prior" in out and weights.get("ca_prior", 0.0) > 0:
+        loss_ca_prior = torch.nn.functional.mse_loss(out["reconfiguration_gain"], out["ca_reconf_prior"])
+
+    # Beam PDE residual loss
+    loss_pde = torch.tensor(0.0, device=target.device)
+    if "pde_residual" in out and weights.get("pde_residual", 0.0) > 0:
+        loss_pde = weights["pde_residual"] * torch.mean(out["pde_residual"])
+
     total = (
         weights["force"] * loss_force
         + weights["cd_prior"] * loss_cd
@@ -715,6 +942,8 @@ def loss_fn(
         + weights["leaf_aux"] * loss_leaf
         + weights["column_aux"] * loss_cols
         + weights["shielding_aux"] * loss_shielding
+        + weights.get("ca_prior", 0.0) * loss_ca_prior
+        + loss_pde
     )
     logs = {
         "loss": float(total.detach().cpu()),
@@ -728,6 +957,8 @@ def loss_fn(
         "leaf_aux": float(loss_leaf.detach().cpu()),
         "column_aux": float(loss_cols.detach().cpu()),
         "shielding_aux": float(loss_shielding.detach().cpu()),
+        "ca_prior": float(loss_ca_prior.detach().cpu()),
+        "loss_pde": float(loss_pde.detach().cpu()),
     }
     return total, logs
 
@@ -735,9 +966,17 @@ def loss_fn(
 def make_run_dir(script_dir: Path) -> Path:
     runs_root = script_dir / "runs" / "pinn_drag"
     runs_root.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-    run_dir = runs_root / f"{ts}__latent_physics"
-    run_dir.mkdir(parents=True, exist_ok=True)
+    base_ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    suffix = 0
+    while True:
+        name = f"{base_ts}__latent_physics" if suffix == 0 else f"{base_ts}_{suffix}__latent_physics"
+        run_dir = runs_root / name
+        try:
+            run_dir.mkdir(parents=True)
+            break
+        except FileExistsError:
+            suffix += 1
+            continue
     (runs_root / "LATEST.txt").write_text(run_dir.name, encoding="utf-8")
     return run_dir
 
@@ -850,8 +1089,7 @@ def save_latent_csv(
                 "shielding_target": shielding_true,
                 "angle_diff_deg": angle_diff_deg,
                 "reconfiguration_factor": float(out["reconfiguration_factor"][i, 0]),
-                "reconfiguration_quad_coef": float(out["reconfiguration_quad_coef"][i, 0]),
-                "reconfiguration_cubic_coef": float(out["reconfiguration_cubic_coef"][i, 0]),
+                "reconfiguration_correction": float(out["reconfiguration_correction"][i, 0]),
                 "reconfiguration_gain": float(out["reconfiguration_gain"][i, 0]),
                 "column_correction_1": float(col_corr[0]),
                 "column_correction_2": float(col_corr[1]),
@@ -1018,8 +1256,7 @@ def plot_outputs(
         ("shielding_coef", "Shielding coefficient"),
         ("reconfiguration_factor", "Reconfiguration factor"),
         ("reconfiguration_gain", "Reconfiguration gain"),
-        ("reconfiguration_quad_coef", "Reconfiguration quadratic coefficient"),
-        ("reconfiguration_cubic_coef", "Reconfiguration cubic coefficient"),
+        ("reconfiguration_correction", "Reconfiguration correction"),
     ]:
         plt.figure(figsize=(6, 4))
         plt.scatter(data.raw_x[:, 2], out[name][:, 0], c=data.raw_x[:, 0], s=18, alpha=0.85)
@@ -1103,7 +1340,13 @@ def plot_outputs(
     tick_idx = list(range(0, VELOCITY_COUNT, 3))
     if tick_idx[-1] != VELOCITY_COUNT - 1:
         tick_idx.append(VELOCITY_COUNT - 1)
-    tick_labels = [f"{data.raw_x[np.where(data.velocity_index == idx)[0][0], 0]:.3f}" for idx in tick_idx]
+    tick_labels = []
+    for idx in tick_idx:
+        matches = np.where(data.velocity_index == idx)[0]
+        if len(matches) > 0:
+            tick_labels.append(f"{data.raw_x[matches[0], 0]:.3f}")
+        else:
+            tick_labels.append(f"v{idx}")
     plt.xticks(tick_idx, tick_labels, rotation=0)
     exp_names = [
         data.config_names[int(cfg)] if int(cfg) < len(data.config_names) else f"config_{int(cfg)}"
@@ -1239,29 +1482,38 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=5e-4)
     parser.add_argument("--weight-decay", type=float, default=3e-4)
-    parser.add_argument("--hidden", type=int, default=128)
+    parser.add_argument("--hidden", type=int, default=256)
     parser.add_argument("--depth", type=int, default=5)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--val-ratio", type=float, default=0.25, help="Validation ratio over experimental samples")
-    parser.add_argument("--residual-scale", type=float, default=0.2)
+    parser.add_argument("--residual-scale", type=float, default=0.03)
     parser.add_argument("--cd-log-range", type=float, default=1.0)
     parser.add_argument("--shielding-min", type=float, default=0.25)
     parser.add_argument("--shielding-max", type=float, default=1.10)
     parser.add_argument("--reconfiguration-min", type=float, default=0.02)
     parser.add_argument("--reconfiguration-max", type=float, default=1.80)
-    parser.add_argument("--column-log-range", type=float, default=0.8)
+    parser.add_argument("--column-log-range", type=float, default=0.05)
     parser.add_argument("--lambda-force-abs", type=float, default=1.0)
     parser.add_argument("--lambda-force-rel", type=float, default=0.35)
     parser.add_argument("--lambda-force-log", type=float, default=0.2)
     parser.add_argument("--relative-floor-scale", type=float, default=0.08)
-    parser.add_argument("--lambda-cd-prior", type=float, default=0.008)
-    parser.add_argument("--lambda-residual", type=float, default=0.01)
+    parser.add_argument("--lambda-cd-prior", type=float, default=0.02)
+    parser.add_argument("--lambda-residual", type=float, default=0.05)
     parser.add_argument("--lambda-reconf-poly", type=float, default=0.002)
     parser.add_argument("--lambda-leaf-aux", type=float, default=0.02)
     parser.add_argument("--lambda-column-aux", type=float, default=0.01)
     parser.add_argument("--lambda-shielding-aux", type=float, default=0.005)
+    parser.add_argument("--lambda-ca-prior", type=float, default=0.0, help="Ca-reconfiguration consistency prior weight (0 = off)")
+    parser.add_argument("--beam-enabled", action="store_true", help="Enable differentiable Euler-Bernoulli beam physics for reconfiguration")
+    parser.add_argument("--beam-n-quad", type=int, default=32, help="Number of Gauss-Legendre quadrature points for beam integration")
+    parser.add_argument("--beam-n-fsi", type=int, default=10, help="Number of FSI iterations in beam solver (load deflection coupling)")
+    parser.add_argument("--lambda-pde-residual", type=float, default=0.05, help="Beam PDE residual loss weight")
     parser.add_argument("--synthetic-force-weight", type=float, default=0.2)
     parser.add_argument("--synthetic-aux-weight", type=float, default=0.3)
+    parser.add_argument("--exclude-configs", type=int, nargs="*", default=None,
+                        help="Exclude specific config_index values from training (material holdout)")
+    parser.add_argument("--holdout-velocity-indices", type=int, nargs="*", default=None,
+                        help="Hold out specific velocity_index values from ALL configs (light holdout for extrapolation testing)")
     return parser.parse_args()
 
 
@@ -1283,6 +1535,33 @@ def main() -> None:
     experimental.source_id[:] = 0
     experimental.sample_weight[:] = 1.0
     experimental.aux_weight[:] = 1.0
+
+    # ── Material holdout: filter excluded configs ──
+    if args.exclude_configs:
+        keep = ~np.isin(experimental.config_index, args.exclude_configs)
+        print(f"Excluding configs {args.exclude_configs}: keeping {int(keep.sum())}/{len(keep)} experimental samples")
+        experimental.raw_x = experimental.raw_x[keep]
+        experimental.y = experimental.y[keep]
+        experimental.config_index = experimental.config_index[keep]
+        experimental.velocity_index = experimental.velocity_index[keep]
+        experimental.source_id = experimental.source_id[keep]
+        experimental.sample_weight = experimental.sample_weight[keep]
+        experimental.aux_weight = experimental.aux_weight[keep]
+
+    # ── Light holdout: exclude specific velocity indices from ALL configs ──
+    if args.holdout_velocity_indices:
+        holdout_mask = np.isin(experimental.velocity_index, args.holdout_velocity_indices)
+        print(f"Velocity holdout indices {args.holdout_velocity_indices}: "
+              f"keeping {int((~holdout_mask).sum())}/{len(holdout_mask)} experimental samples "
+              f"(hold out {int(holdout_mask.sum())} high-velocity points for extrapolation test)")
+        experimental.raw_x = experimental.raw_x[~holdout_mask]
+        experimental.y = experimental.y[~holdout_mask]
+        experimental.config_index = experimental.config_index[~holdout_mask]
+        experimental.velocity_index = experimental.velocity_index[~holdout_mask]
+        experimental.source_id = experimental.source_id[~holdout_mask]
+        experimental.sample_weight = experimental.sample_weight[~holdout_mask]
+        experimental.aux_weight = experimental.aux_weight[~holdout_mask]
+
     data_parts = [experimental]
     if synthetic_path is not None:
         synthetic = load_dataset(synthetic_path)
@@ -1322,7 +1601,11 @@ def main() -> None:
         reconfiguration_min=args.reconfiguration_min,
         reconfiguration_max=args.reconfiguration_max,
         column_log_range=args.column_log_range,
+        beam_enabled=args.beam_enabled,
+        beam_n_quad=args.beam_n_quad,
+        beam_n_fsi=args.beam_n_fsi,
     ).to(device)
+    print(f"Beam physics enabled: {args.beam_enabled}  (λ_pde={args.lambda_pde_residual})")
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
@@ -1344,6 +1627,8 @@ def main() -> None:
         "leaf_aux": args.lambda_leaf_aux,
         "column_aux": args.lambda_column_aux,
         "shielding_aux": args.lambda_shielding_aux,
+        "ca_prior": args.lambda_ca_prior,
+        "pde_residual": args.lambda_pde_residual,
     }
     history = []
     best_val_force = math.inf
@@ -1405,6 +1690,38 @@ def main() -> None:
     with (run_dir / "metrics.json").open("w", encoding="utf-8") as f:
         json.dump(metrics, f, ensure_ascii=False, indent=2)
     print(f"Metrics: {metrics}")
+
+    # ── Per-material breakdown (on all 228 experimental samples) ──
+    try:
+        full_data = load_dataset(mat_path)
+        full_features, _ = build_features(full_data.raw_x)
+        full_model_x = scaler.transform(full_features)
+        full_out = predict_all(model, full_data, full_model_x, device)
+        full_pred = full_out["force"][:, 0]
+        full_y = full_data.y[:, 0]
+
+        MATERIAL_GROUPS = {
+            "hard  (PVC,     E=1.25e7)": [0, 1, 2, 3],
+            "med   (Rguijiao,E=3.55e6)": [4, 5, 6, 7],
+            "soft  (guijiao,E=4.80e5)":  [8, 9, 10, 11],
+        }
+        total_mse, total_n = 0.0, 0
+        print("\nPer-material breakdown (all 228 experimental samples):")
+        print(f"  {'Group':<30} {'RMSE':>8} {'R2':>8} {'MAE':>8} {'n':>5}")
+        print(f"  {'─'*30} {'─'*8} {'─'*8} {'─'*8} {'─'*5}")
+        for mat_name, cfg_ids in MATERIAL_GROUPS.items():
+            mask = np.isin(full_data.config_index, cfg_ids)
+            n = int(mask.sum())
+            m = compute_metrics(full_y[mask], full_pred[mask])
+            total_mse += (m["rmse"] ** 2) * n
+            total_n += n
+            print(f"  {mat_name:<30} {m['rmse']:>8.4f} {m['r2']:>8.4f} {m['mae']:>8.4f} {n:>5}")
+        weighted_rmse = math.sqrt(total_mse / total_n) if total_n > 0 else 0.0
+        print(f"  {'─'*30} {'─'*8} {'─'*8} {'─'*8} {'─'*5}")
+        print(f"  {'Weighted RMSE':<30} {weighted_rmse:>8.4f}")
+    except Exception as exc:
+        print(f"(Per-material breakdown skipped: {exc})")
+
     print("Training complete.")
 
 

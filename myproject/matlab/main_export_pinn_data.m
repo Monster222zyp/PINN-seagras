@@ -25,6 +25,11 @@ SYNTHETIC_RANDOM_POINTS = true; % true: fully random points; false: 19 velocitie
 
 %% Base parameters
 currentDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(currentDir);
+dataDir = fullfile(projectDir, 'data');
+if ~exist(dataDir, 'dir')
+    mkdir(dataDir);
+end
 addpath(currentDir);
 
 params_base = struct();
@@ -50,10 +55,10 @@ material_configs = setupMaterialConfigs(INCLUDE_0_DEGREE);
 
 if USE_PHYSICAL_ANGLE_MODEL
     synth_filename = 'pinn_training_data_synth_physical.mat';
-    experimental_pinn_path = fullfile(currentDir, 'pinn_training_data_physical.mat');
+    experimental_pinn_path = fullfile(dataDir, 'pinn_training_data_physical.mat');
 else
     synth_filename = 'pinn_training_data_synth.mat';
-    experimental_pinn_path = fullfile(currentDir, 'pinn_training_data.mat');
+    experimental_pinn_path = fullfile(dataDir, 'pinn_training_data.mat');
 end
 
 %% Optional synthetic export
@@ -70,9 +75,9 @@ if EXPORT_SYNTHETIC_PINN_DATA
     synth_options.experimental_pinn_path = experimental_pinn_path;
 
     exportSyntheticPINNTrainingData( ...
-        fullfile(currentDir, synth_filename), ...
+        fullfile(dataDir, synth_filename), ...
         params_base, material_configs, v, Re, synth_options);
-    fprintf('Synthetic PINN data exported: %s\n', fullfile(currentDir, synth_filename));
+    fprintf('Synthetic PINN data exported: %s\n', fullfile(dataDir, synth_filename));
 else
     fprintf('EXPORT_SYNTHETIC_PINN_DATA is false. No synthetic dataset was exported.\n');
 end

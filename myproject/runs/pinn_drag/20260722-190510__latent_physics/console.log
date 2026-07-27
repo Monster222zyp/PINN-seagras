@@ -1,0 +1,25 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-190510__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: data/pinn_training_data_synth.mat
+Velocity holdout indices [16, 17, 18]: keeping 192/228 experimental samples (hold out 36 high-velocity points for extrapolation test)
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.150; synthetic samples stay in train only
+Beam physics enabled: True  (λ_pde=0.05)
+[0001/500] train_force=0.4337 val_force=0.648
+[0100/500] train_force=0.09089 val_force=0.09296
+[0200/500] train_force=0.09247 val_force=0.1017
+[0300/500] train_force=0.08826 val_force=0.08131
+[0400/500] train_force=0.08662 val_force=0.07766
+[0500/500] train_force=0.08836 val_force=0.08269
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-190510__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.18019551038742065, 'mae': 0.10653924942016602, 'r2': 0.8977848887443542}, 'train': {'rmse': 0.18561074137687683, 'mae': 0.11016952991485596, 'r2': 0.8970235586166382}, 'val': {'rmse': 0.1460694521665573, 'mae': 0.08613447844982147, 'r2': 0.9006032943725586}, 'synthetic': {'rmse': 0.3028789162635803, 'mae': 0.15695498883724213, 'r2': 0.8526029586791992}, 'experimental_sample_count': 192, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.02995627641212195, 'best_epoch': 395, 'best_val_force': 0.07712569087743759}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.3599   0.8645   0.2283    76
+  med   (Rguijiao,E=3.55e6)        0.1472   0.9449   0.0998    76
+  soft  (guijiao,E=4.80e5)         0.0704   0.9659   0.0505    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.2281
+Training complete.

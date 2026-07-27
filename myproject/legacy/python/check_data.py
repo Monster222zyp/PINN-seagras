@@ -2,6 +2,7 @@
 """
 检查实验数据文件的结构
 """
+import os
 import config  # 导入配置文件设置环境
 import numpy as np
 from scipy.io import loadmat
@@ -65,7 +66,8 @@ def check_mat_file(file_path):
 
 if __name__ == "__main__":
     # 检查实验数据文件
-    data = check_mat_file("pinn_training_data.mat")
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    data = check_mat_file(os.path.join(project_dir, "data", "pinn_training_data.mat"))
     
     if data is not None:
         print("\n=== 建议的数据读取方式 ===")

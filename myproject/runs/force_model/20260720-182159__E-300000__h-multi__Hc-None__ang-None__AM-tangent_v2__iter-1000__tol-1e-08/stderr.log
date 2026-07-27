@@ -1,0 +1,23 @@
+/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_force_model.py:519: RuntimeWarning: Mean of empty slice
+  mean = train_arr.mean(axis=0, keepdims=True)
+/Users/zyp/miniforge3/envs/pinn-seagrass/lib/python3.13/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/Users/zyp/miniforge3/envs/pinn-seagrass/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/zyp/miniforge3/envs/pinn-seagrass/lib/python3.13/site-packages/numpy/_core/_methods.py:178: RuntimeWarning: invalid value encountered in divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean,
+/Users/zyp/miniforge3/envs/pinn-seagrass/lib/python3.13/site-packages/numpy/_core/_methods.py:208: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/Users/zyp/miniforge3/envs/pinn-seagrass/lib/python3.13/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/Users/zyp/miniforge3/envs/pinn-seagrass/lib/python3.13/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in divide
+  ret = ret.dtype.type(ret / rcount)
+/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_force_model.py:941: UserWarning: 'where' used without 'out', expect uninitialized memory in output. If this is intentional, use out=None.
+  weights = np.divide(Fs1_cols, denom + 1e-12, where=(denom + 1e-12) != 0.0)
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_force_model.py", line 1079, in <module>
+    main()
+    ~~~~^^
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_force_model.py", line 1014, in main
+    best_key = max(groups.keys(), key=lambda k: len(groups[k]))
+ValueError: max() iterable argument is empty

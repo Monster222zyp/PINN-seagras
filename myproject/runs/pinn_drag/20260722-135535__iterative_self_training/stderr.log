@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_iterative_self_training.py", line 1180, in <module>
+    main()
+    ~~~~^^
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_iterative_self_training.py", line 970, in main
+    current = fit_stage(
+        pretrain_data,
+    ...<9 lines>...
+        0,
+    )
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_iterative_self_training.py", line 577, in fit_stage
+    train_idx = combined_training_indices(data, experimental_train_idx)
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_iterative_self_training.py", line 400, in combined_training_indices
+    raise ValueError("experimental_train_idx contains non-experimental rows")
+ValueError: experimental_train_idx contains non-experimental rows

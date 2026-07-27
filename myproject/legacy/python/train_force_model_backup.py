@@ -345,7 +345,8 @@ def main():
     args = parser.parse_args([]) if os.environ.get("CURSOR_INVOCATION", "0") == "1" else parser.parse_args()
 
     set_seed(42)
-    mat_path = os.path.join(os.path.dirname(__file__), "pinn_training_data.mat")
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    mat_path = os.path.join(project_dir, "data", "pinn_training_data.mat")
     X, y = load_dataset(mat_path)
 
     # 若命令行未给出，使用顶部选择变量
@@ -354,9 +355,8 @@ def main():
     if args.target_h is None and SELECT_H is not None:
         args.target_h = SELECT_H
 
-    # 结果输出目录：runs_force/<timestamp>__参数签名
-    script_dir = os.path.dirname(__file__)
-    runs_root = os.path.join(script_dir, "runs_force")
+    # 结果输出目录：runs/force_model/<timestamp>__参数签名
+    runs_root = os.path.join(project_dir, "runs", "force_model")
     os.makedirs(runs_root, exist_ok=True)
     def _fmt(v):
         if v is None:

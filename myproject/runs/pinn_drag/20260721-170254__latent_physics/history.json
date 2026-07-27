@@ -1,0 +1,27 @@
+[
+  {
+    "epoch": 1,
+    "train_loss": 12.48276835680008,
+    "train_force": 12.267259642481804,
+    "train_force_abs": 9.588441610336304,
+    "train_force_rel": 7.463220521807671,
+    "train_force_log": 0.33345496095716953,
+    "train_cd_prior": 0.2994515895843506,
+    "train_residual": 0.010583636350929737,
+    "train_reconf_poly": 1.3095564246177673,
+    "train_leaf_aux": 9.703999757766724,
+    "train_column_aux": 1.6096451804041862,
+    "train_shielding_aux": 0.04219774715602398,
+    "val_loss": 0.3406163454055786,
+    "val_force": 0.32938575744628906,
+    "val_force_abs": 0.2671799659729004,
+    "val_force_rel": 0.1592220813035965,
+    "val_force_log": 0.032390426844358444,
+    "val_cd_prior": 0.5517919063568115,
+    "val_residual": 0.015411688946187496,
+    "val_reconf_poly": 0.8635860681533813,
+    "val_leaf_aux": 0.20162944495677948,
+    "val_column_aux": 0.0681999921798706,
+    "val_shielding_aux": 0.04407978057861328
+  }
+]

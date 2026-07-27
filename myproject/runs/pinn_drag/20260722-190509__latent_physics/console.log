@@ -1,0 +1,25 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-190509__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: data/pinn_training_data_synth.mat
+Velocity holdout indices [16, 17, 18]: keeping 192/228 experimental samples (hold out 36 high-velocity points for extrapolation test)
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.150; synthetic samples stay in train only
+Beam physics enabled: True  (λ_pde=0.05)
+[0001/500] train_force=0.3822 val_force=0.5123
+[0100/500] train_force=0.123 val_force=0.1139
+[0200/500] train_force=0.1225 val_force=0.1131
+[0300/500] train_force=0.1229 val_force=0.1112
+[0400/500] train_force=0.1214 val_force=0.1047
+[0500/500] train_force=0.1207 val_force=0.1036
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260722-190509__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.21884259581565857, 'mae': 0.13170789182186127, 'r2': 0.8492383360862732}, 'train': {'rmse': 0.2259548306465149, 'mae': 0.13656197488307953, 'r2': 0.8473927974700928}, 'val': {'rmse': 0.17352521419525146, 'mae': 0.10442472249269485, 'r2': 0.8597255945205688}, 'synthetic': {'rmse': 0.3440273404121399, 'mae': 0.17738191783428192, 'r2': 0.8098323941230774}, 'experimental_sample_count': 192, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.02992964326404035, 'best_epoch': 479, 'best_val_force': 0.10213939845561981}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.4364   0.8007   0.2856    76
+  med   (Rguijiao,E=3.55e6)        0.1857   0.9123   0.1298    76
+  soft  (guijiao,E=4.80e5)         0.0794   0.9566   0.0544    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.2777
+Training complete.

@@ -1,1 +1,1 @@
-20260413-183845__E-300000__h-0p01__Hc-None__ang-None__AM-max__iter-1000__tol-1e-08
+20260720-182412__E-None__h-multi__Hc-None__ang-None__AM-tangent_v2__iter-1000__tol-1e-08

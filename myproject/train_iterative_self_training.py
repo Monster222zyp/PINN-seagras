@@ -34,6 +34,14 @@ except ImportError:
 
 
 PSEUDO_SOURCE_ID = 2
+MATERIAL_HOLDOUT_SOURCE_ID = 3
+
+# 3 materials in experimental data: each has 4 configs × 19 velocities = 76 samples
+MATERIAL_CONFIG_GROUPS = {
+    0: {"configs": [0, 1, 2, 3], "name": "hard (E=1.25e7)"},
+    1: {"configs": [4, 5, 6, 7], "name": "medium (E=3.55e6)"},
+    2: {"configs": [8, 9, 10, 11], "name": "soft (E=4.80e5)"},
+}
 
 
 @dataclass
@@ -87,6 +95,50 @@ def _unique_configuration_rows(
     train_config = data.config_index[train_idx]
     config_ids, first = np.unique(train_config, return_index=True)
     return train_raw[first].copy(), config_ids.astype(np.int64, copy=False)
+
+
+def _reservoir_split(
+    experimental: base.LoadedData,
+    reservoir_idx: np.ndarray,
+    val_ratio: float,
+    seed: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Split reservoir indices into experimental train and validation."""
+    rng = np.random.default_rng(seed)
+    shuffled = reservoir_idx.copy()
+    rng.shuffle(shuffled)
+    n_val = max(1, min(len(shuffled) - 1, int(round(len(shuffled) * val_ratio))))
+    val_idx = np.sort(shuffled[:n_val]).astype(np.int64)
+    exp_train_idx = np.sort(shuffled[n_val:]).astype(np.int64)
+    return exp_train_idx, val_idx
+
+
+def _balance_subsample(
+    experimental: base.LoadedData,
+    exp_train_idx: np.ndarray,
+    n_keep: int,
+    seed: int,
+) -> np.ndarray:
+    """Subsample with configuration balance."""
+    if len(exp_train_idx) <= n_keep:
+        return exp_train_idx.copy()
+    rng = np.random.default_rng(seed)
+    configs = experimental.config_index[exp_train_idx]
+    unique_configs = np.unique(configs)
+    per_config = max(1, n_keep // len(unique_configs))
+    selected: list[int] = []
+    for config_id in unique_configs:
+        rows = np.where(experimental.config_index[exp_train_idx] == config_id)[0]
+        rng.shuffle(rows)
+        selected.extend(exp_train_idx[rows[:per_config]].tolist())
+    remaining = n_keep - len(selected)
+    if remaining > 0:
+        pool = np.setdiff1d(exp_train_idx, selected)
+        if len(pool) > 0:
+            rng.shuffle(pool)
+            selected.extend(pool[:remaining].tolist())
+    result = np.array(sorted(selected), dtype=np.int64)
+    return result
 
 
 def generate_candidate_pool(
@@ -342,11 +394,11 @@ def combined_training_indices(
     data: base.LoadedData,
     experimental_train_idx: np.ndarray,
 ) -> np.ndarray:
-    """Combine fixed experimental-train rows with every non-experimental row."""
+    """Combine experimental-train rows with synthetic/pseudo rows (exclude material holdout)."""
     experimental_train_idx = np.asarray(experimental_train_idx, dtype=np.int64)
     if np.any(data.source_id[experimental_train_idx] != 0):
         raise ValueError("experimental_train_idx contains non-experimental rows")
-    generated_idx = np.where(data.source_id != 0)[0].astype(np.int64)
+    generated_idx = np.where(np.isin(data.source_id, [1, PSEUDO_SOURCE_ID]))[0].astype(np.int64)
     return np.concatenate([experimental_train_idx, generated_idx])
 
 
@@ -439,6 +491,9 @@ def _model_kwargs(args: argparse.Namespace) -> dict[str, Any]:
         "reconfiguration_min": args.reconfiguration_min,
         "reconfiguration_max": args.reconfiguration_max,
         "column_log_range": args.column_log_range,
+        "beam_enabled": getattr(args, "beam_enabled", False),
+        "beam_n_quad": getattr(args, "beam_n_quad", 32),
+        "beam_n_fsi": getattr(args, "beam_n_fsi", 2),
     }
 
 
@@ -459,6 +514,8 @@ def _loss_weights(args: argparse.Namespace) -> dict[str, float]:
         "leaf_aux": args.lambda_leaf_aux,
         "column_aux": args.lambda_column_aux,
         "shielding_aux": args.lambda_shielding_aux,
+        "ca_prior": args.lambda_ca_prior,
+        "pde_residual": getattr(args, "lambda_pde_residual", 0.0),
     }
 
 
@@ -471,18 +528,26 @@ def _stage_metrics(
     target = data.y[:, 0]
     prediction = output["force"].reshape(-1)
     pseudo_idx = np.where(data.source_id == PSEUDO_SOURCE_ID)[0]
+    synthetic_idx = np.where(data.source_id == 1)[0]
+    holdout_idx = np.where(data.source_id == MATERIAL_HOLDOUT_SOURCE_ID)[0]
     metrics: dict[str, Any] = {
         "experimental_train": base.compute_metrics(target[experimental_train_idx], prediction[experimental_train_idx]),
         "experimental_validation": base.compute_metrics(target[val_idx], prediction[val_idx]),
         "counts": {
             "experimental_train": int(len(experimental_train_idx)),
             "experimental_validation": int(len(val_idx)),
+            "holdout": int(len(holdout_idx)),
             "pseudo": int(len(pseudo_idx)),
+            "synthetic": int(len(synthetic_idx)),
             "total": int(len(data.raw_x)),
         },
     }
+    if len(holdout_idx):
+        metrics["experimental_holdout"] = base.compute_metrics(target[holdout_idx], prediction[holdout_idx])
     if len(pseudo_idx):
         metrics["pseudo"] = base.compute_metrics(target[pseudo_idx], prediction[pseudo_idx])
+    if len(synthetic_idx):
+        metrics["synthetic"] = base.compute_metrics(target[synthetic_idx], prediction[synthetic_idx])
     ratio = np.abs(output["F_residual"].reshape(-1)) / np.maximum(
         np.abs(output["F_physics"].reshape(-1)), 1e-8
     )
@@ -668,6 +733,15 @@ def _candidate_summary(evaluation: CandidateEvaluation) -> dict[str, Any]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", default=None, help="Experimental v7.3 pinn_training_data.mat")
+    parser.add_argument("--synthetic-data", default=None, help="MATLAB synthetic v7.3 pinn_training_data_synth.mat")
+    parser.add_argument("--synthetic-force-weight", type=float, default=0.2)
+    parser.add_argument("--synthetic-aux-weight", type=float, default=0.3)
+    parser.add_argument("--material-holdout-id", type=int, default=-1,
+        help="Hold out one material (-1=off, 0=hard, 1=medium, 2=soft) to test generalization")
+    parser.add_argument("--exp-retention-rate", type=float, default=1.0,
+        help="Per-cycle retention of experimental training samples (1.0=no reduction, 0.85=15%% fewer each cycle)")
+    parser.add_argument("--exp-min-train", type=int, default=10,
+        help="Minimum experimental training samples regardless of retention rate")
     parser.add_argument("--cycles", type=int, default=3, help="Number of post-training cycles")
     parser.add_argument("--pretrain-epochs", type=int, default=1000)
     parser.add_argument("--posttrain-epochs", type=int, default=500)
@@ -688,11 +762,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--weight-decay", type=float, default=3e-4)
     parser.add_argument("--lr-patience", type=int, default=150)
     parser.add_argument("--min-lr", type=float, default=1e-5)
-    parser.add_argument("--hidden", type=int, default=128)
+    parser.add_argument("--hidden", type=int, default=256)
     parser.add_argument("--depth", type=int, default=5)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--skip-plots", action="store_true")
-    parser.add_argument("--residual-scale", type=float, default=0.2)
+    parser.add_argument("--residual-scale", type=float, default=0.3)
     parser.add_argument("--cd-log-range", type=float, default=1.0)
     parser.add_argument("--shielding-min", type=float, default=0.25)
     parser.add_argument("--shielding-max", type=float, default=1.10)
@@ -709,6 +783,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lambda-leaf-aux", type=float, default=0.02)
     parser.add_argument("--lambda-column-aux", type=float, default=0.01)
     parser.add_argument("--lambda-shielding-aux", type=float, default=0.005)
+    parser.add_argument("--lambda-ca-prior", type=float, default=0.0, help="Ca-reconfiguration consistency prior weight (0 = off)")
+    parser.add_argument("--beam-enabled", action="store_true", help="Enable differentiable Euler-Bernoulli beam physics for reconfiguration")
+    parser.add_argument("--beam-n-quad", type=int, default=32, help="Quadrature points for beam integration")
+    parser.add_argument("--beam-n-fsi", type=int, default=2, help="FSI iterations in beam solver")
+    parser.add_argument("--lambda-pde-residual", type=float, default=0.0, help="Beam PDE residual loss weight (0 = off)")
     return parser.parse_args()
 
 
@@ -750,6 +829,12 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise ValueError("max_cd_ratio must be finite and at least 1")
     if not math.isfinite(args.val_ratio) or not 0.0 < args.val_ratio < 1.0:
         raise ValueError("val_ratio must be finite and in (0, 1)")
+    if args.material_holdout_id not in (-1, 0, 1, 2):
+        raise ValueError("material_holdout_id must be -1 (off), 0 (hard), 1 (medium), or 2 (soft)")
+    if not math.isfinite(args.exp_retention_rate) or not 0.0 < args.exp_retention_rate <= 1.0:
+        raise ValueError("exp_retention_rate must be in (0, 1]")
+    if args.exp_min_train < 1:
+        raise ValueError("exp_min_train must be at least 1")
     positive_ranges = {
         "cd_log_range": args.cd_log_range,
         "column_log_range": args.column_log_range,
@@ -801,9 +886,44 @@ def main() -> None:
         raise ValueError("--data must contain experimental rows only (source_id == 0)")
     experimental.sample_weight[:] = 1.0
     experimental.aux_weight[:] = 1.0
+
+    synthetic_path = Path(args.synthetic_data).expanduser().resolve() if args.synthetic_data else None
+    synthetic_data = None
+    if synthetic_path is not None:
+        print(f"Synthetic data file: {synthetic_path}")
+        synthetic_data = base.load_dataset(synthetic_path)
+        synthetic_data.source_id[:] = 1
+        synthetic_data.sample_weight[:] = args.synthetic_force_weight
+        synthetic_data.aux_weight[:] = args.synthetic_aux_weight
+        print(
+            f"  synthetic: {len(synthetic_data.raw_x)} rows, "
+            f"force_weight={args.synthetic_force_weight}, "
+            f"aux_weight={args.synthetic_aux_weight}"
+        )
+
+    # Compute holdout mask (done before split to filter indices, but source_id is modified after)
+    holdout_configs: list[int] = []
+    if args.material_holdout_id >= 0:
+        group = MATERIAL_CONFIG_GROUPS[args.material_holdout_id]
+        holdout_configs = group["configs"]
+    holdout_mask = np.isin(experimental.config_index, holdout_configs)
+
+    # First split without holdout (all data still source_id=0)
     experimental_train_idx, val_idx = base.split_experimental_random(
         experimental, args.val_ratio, args.seed
     )
+
+    # Then apply holdout: filter indices and mark source_id
+    if args.material_holdout_id >= 0:
+        n_holdout = int(np.sum(holdout_mask))
+        experimental_train_idx = np.array([i for i in experimental_train_idx if not holdout_mask[i]], dtype=np.int64)
+        val_idx = np.array([i for i in val_idx if not holdout_mask[i]], dtype=np.int64)
+        experimental.source_id[holdout_mask] = MATERIAL_HOLDOUT_SOURCE_ID
+        print(f"Material holdout: {group['name']} (configs={holdout_configs}) — {n_holdout} samples held out")
+        print(f"  Remaining experimental for train/val: {int(np.sum(experimental.source_id == 0))}")
+    else:
+        print("Material holdout: off")
+
     experimental_features, _ = base.build_features(experimental.raw_x)
     scaler = base.Standardizer.fit(experimental_features[experimental_train_idx])
     np.savez(
@@ -811,6 +931,20 @@ def main() -> None:
         train_idx=experimental_train_idx,
         validation_idx=val_idx,
     )
+    holdout_idx = np.where(experimental.source_id == MATERIAL_HOLDOUT_SOURCE_ID)[0]
+
+    pretrain_data = (
+        base.concat_loaded_data([experimental, synthetic_data])
+        if synthetic_data is not None
+        else experimental
+    )
+
+    print(
+        f"Pretrain data: experimental={len(experimental.raw_x)}"
+        + (f", synthetic={len(synthetic_data.raw_x)}" if synthetic_data else ", synthetic=0")
+        + f", total={len(pretrain_data.raw_x)}"
+    )
+
     _write_json(
         run_dir / "run_config.json",
         {
@@ -819,21 +953,38 @@ def main() -> None:
             "experimental_samples": len(experimental.raw_x),
             "experimental_train_samples": len(experimental_train_idx),
             "experimental_validation_samples": len(val_idx),
+            "experimental_holdout_samples": len(holdout_idx),
+            "synthetic_data": str(synthetic_path) if synthetic_path else None,
+            "synthetic_samples": len(synthetic_data.raw_x) if synthetic_data else 0,
             "validation_rule": "fixed experimental-only random row split",
+            "material_holdout_id": args.material_holdout_id,
+            "exp_retention_rate": args.exp_retention_rate,
+            "exp_min_train": args.exp_min_train,
             "pseudo_source_id": PSEUDO_SOURCE_ID,
+            "source_id_semantics": {
+                "0": "experimental (train/val)",
+                "1": "MATLAB synthetic",
+                "2": "surrogate pseudo-label",
+                "3": "material holdout (never trained on)",
+            },
         },
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
+    available = int(np.sum(experimental.source_id == 0))
     print(
-        f"Fixed split: experimental train={len(experimental_train_idx)}, "
-        f"experimental validation={len(val_idx)}"
+        f"Fixed split: available experimental={available}, train={len(experimental_train_idx)}, "
+        f"validation={len(val_idx)}"
     )
+    if len(holdout_idx):
+        print(f"  Holdout: {len(holdout_idx)} samples, never used for training or validation")
+    if args.exp_retention_rate < 1.0:
+        print(f"  Experimental retention: {args.exp_retention_rate} per cycle, min={args.exp_min_train}")
 
     pretrain_dir = run_dir / "cycle_00_pretrain"
     current = fit_stage(
-        experimental,
+        pretrain_data,
         experimental_train_idx,
         val_idx,
         scaler,
@@ -863,10 +1014,26 @@ def main() -> None:
             "checkpoint": current.checkpoint_path,
         }
     ]
+    if "experimental_holdout" in current.metrics:
+        cycle_rows[0]["experimental_holdout"] = current.metrics["experimental_holdout"]
+        print(f"  Holdout RMSE: {current.metrics['experimental_holdout']['rmse']:.6g}")
     _write_json(run_dir / "metrics_by_cycle.json", cycle_rows)
 
     for cycle_id in range(1, args.cycles + 1):
         print(f"\nStarting post-training cycle {cycle_id}/{args.cycles}")
+
+        # Optional: gradually reduce experimental training samples
+        exp_train_idx = experimental_train_idx
+        if args.exp_retention_rate < 1.0:
+            original_n = len(experimental_train_idx)
+            n_keep = max(args.exp_min_train, int(original_n * (args.exp_retention_rate ** (cycle_id - 1))))
+            if n_keep < original_n:
+                exp_train_idx = _balance_subsample(
+                    experimental, experimental_train_idx, n_keep, args.seed + 3000 * cycle_id
+                )
+                print(f"  Experimental retention: {original_n} → {n_keep}")
+            elif cycle_id == 1:
+                print(f"  Experimental retention: {original_n} → full")
         cycle_dir = run_dir / f"cycle_{cycle_id:02d}_posttrain"
         cycle_dir.mkdir(parents=True, exist_ok=True)
         pool_size = args.generated_samples_per_cycle * args.candidate_multiplier
@@ -927,7 +1094,7 @@ def main() -> None:
         previous_val_rmse = current_val_rmse
         attempted = fit_stage(
             combined,
-            experimental_train_idx,
+            exp_train_idx,
             val_idx,
             scaler,
             args,
@@ -978,6 +1145,10 @@ def main() -> None:
             "pseudo_memory_samples": int(sum(len(part.raw_x) for part in pseudo_memory)),
             "attempted_checkpoint": attempted.checkpoint_path,
         }
+        if "experimental_holdout" in attempted.metrics:
+            row["experimental_holdout"] = attempted.metrics["experimental_holdout"]
+            holdout_rmse = attempted.metrics["experimental_holdout"]["rmse"]
+            print(f"  Holdout RMSE: {holdout_rmse:.6g}")
         cycle_rows.append(row)
         _write_json(cycle_dir / "cycle_decision.json", row)
         _write_json(run_dir / "metrics_by_cycle.json", cycle_rows)
@@ -999,9 +1170,25 @@ def main() -> None:
         "completed_posttrain_cycles": args.cycles,
         "accepted_posttrain_cycles": int(sum(row.get("accepted_for_next_cycle", False) for row in cycle_rows[1:])),
         "final_pseudo_memory_samples": int(sum(len(part.raw_x) for part in pseudo_memory)),
+        "material_holdout": {
+            "material_holdout_id": args.material_holdout_id,
+            "holdout_samples": int(len(holdout_idx)),
+        },
     }
     _write_json(run_dir / "summary.json", summary)
     print(f"\nBest fixed-validation RMSE: {best_val_rmse:.6g}")
+    if len(holdout_idx):
+        ckpt = torch.load(best_checkpoint, map_location=device)
+        holdout_model = create_model(args, scaler.mean.shape[1], device)
+        holdout_model.load_state_dict(ckpt["model_state"])
+        all_features, _ = base.build_features(experimental.raw_x)
+        all_model_x = scaler.transform(all_features)
+        holdout_output = base.predict_all(holdout_model, experimental, all_model_x, device)
+        holdout_pred = holdout_output["force"].reshape(-1)[holdout_idx]
+        holdout_target = experimental.y[holdout_idx, 0]
+        holdout_metrics = base.compute_metrics(holdout_target, holdout_pred)
+        print(f"  Holdout RMSE (best model): {holdout_metrics['rmse']:.6g}")
+        print(f"  Holdout R²   (best model): {holdout_metrics['r2']:.5f}")
     print(f"Final model: {run_dir / 'final_model.pt'}")
 
 
