@@ -1,0 +1,6 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260728-142620__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: mps
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only

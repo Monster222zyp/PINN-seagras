@@ -1,0 +1,14 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-200110__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: cpu
+Beam physics enabled: True  (λ_pde=0.05)
+[0001/400] train_force=nan val_force=nan
+[0100/400] train_force=nan val_force=nan
+[0200/400] train_force=nan val_force=nan
+[0300/400] train_force=nan val_force=nan
+[0400/400] train_force=nan val_force=nan
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-200110__latent_physics/latent_predictions.csv

@@ -1,0 +1,27 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-203531__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE (n=64)
+[0001/600] train_force=0.2876 val_force=0.3869
+[0100/600] train_force=0.8732 val_force=0.8479
+[0200/600] train_force=nan val_force=nan
+[0300/600] train_force=nan val_force=nan
+[0400/600] train_force=nan val_force=nan
+[0500/600] train_force=nan val_force=nan
+[0600/600] train_force=nan val_force=nan
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-203531__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.481579452753067, 'mae': 0.3316042423248291, 'r2': 0.6368762850761414}, 'train': {'rmse': 0.49351340532302856, 'mae': 0.34299519658088684, 'r2': 0.6415858268737793}, 'val': {'rmse': 0.4438565671443939, 'mae': 0.29743140935897827, 'r2': 0.6025953888893127}, 'synthetic': {'rmse': 0.4741399884223938, 'mae': 0.3158602714538574, 'r2': 0.6387866139411926}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.009450904142699744, 'best_epoch': 1, 'best_val_force': 0.3869228959083557}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.6257   0.5903   0.4741    76
+  med   (Rguijiao,E=3.55e6)        0.2834   0.7958   0.2203    76
+  soft  (guijiao,E=4.80e5)         0.2690   0.5022   0.1891    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.4259
+Training complete.

@@ -1,0 +1,31 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260728-211744__latent_physics
+Data file: data/pinn_training_data.mat
+Synthetic data file: data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: mps
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: mps
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE+θ (n=64). Encoder residual ON (f_physics.detach())
+[0001/800] train_force=0.2032 val_force=0.4336
+[0100/800] train_force=0.02142 val_force=0.04653
+[0200/800] train_force=0.0205 val_force=0.04443
+[0300/800] train_force=0.01949 val_force=0.04108
+[0400/800] train_force=0.01888 val_force=0.039
+[0500/800] train_force=0.01817 val_force=0.03936
+[0600/800] train_force=0.01794 val_force=0.03892
+[0700/800] train_force=0.0172 val_force=0.03821
+[0800/800] train_force=0.01712 val_force=0.03718
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260728-211744__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.07499343156814575, 'mae': 0.055372100323438644, 'r2': 0.9911942481994629}, 'train': {'rmse': 0.07149507105350494, 'mae': 0.05140681564807892, 'r2': 0.9924778938293457}, 'val': {'rmse': 0.0846252292394638, 'mae': 0.06726794689893723, 'r2': 0.985554039478302}, 'synthetic': {'rmse': 0.10559303313493729, 'mae': 0.06252025812864304, 'r2': 0.9820848107337952}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.07549124348320459, 'best_epoch': 793, 'best_val_force': 0.03699581325054169}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.0691   0.9950   0.0484    76
+  med   (Rguijiao,E=3.55e6)        0.1701   0.9264   0.1168    76
+  soft  (guijiao,E=4.80e5)         0.0805   0.9555   0.0624    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.1157
+  (Saved Rgui holdout comparison plots)
+Training complete.

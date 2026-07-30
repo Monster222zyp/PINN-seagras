@@ -1,0 +1,53 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260728-224736__latent_physics
+Data file: data/pinn_training_data.mat
+Synthetic data file: data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: mps
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: mps
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE+θ (n=64). Encoder residual ON (f_physics.detach())
+[0001/3000] train_force=0.2028 val_force=0.4769
+[0100/3000] train_force=0.05699 val_force=0.09407
+[0200/3000] train_force=0.03094 val_force=0.05363
+[0300/3000] train_force=0.02154 val_force=0.04738
+[0400/3000] train_force=0.02064 val_force=0.04509
+[0500/3000] train_force=0.02026 val_force=0.04398
+[0600/3000] train_force=0.01997 val_force=0.04274
+[0700/3000] train_force=0.01981 val_force=0.0424
+[0800/3000] train_force=0.01959 val_force=0.04246
+[0900/3000] train_force=0.01921 val_force=0.04231
+[1000/3000] train_force=0.01872 val_force=0.0415
+[1100/3000] train_force=0.01837 val_force=0.03909
+[1200/3000] train_force=0.01801 val_force=0.03894
+[1300/3000] train_force=0.01762 val_force=0.03844
+[1400/3000] train_force=0.0175 val_force=0.03813
+[1500/3000] train_force=0.01719 val_force=0.03847
+[1600/3000] train_force=0.01676 val_force=0.03721
+[1700/3000] train_force=0.01661 val_force=0.03677
+[1800/3000] train_force=0.01652 val_force=0.03654
+[1900/3000] train_force=0.01647 val_force=0.03638
+[2000/3000] train_force=0.01636 val_force=0.0362
+[2100/3000] train_force=0.0163 val_force=0.03583
+[2200/3000] train_force=0.01619 val_force=0.03575
+[2300/3000] train_force=0.01613 val_force=0.03578
+[2400/3000] train_force=0.01606 val_force=0.03589
+[2500/3000] train_force=0.01594 val_force=0.036
+[2600/3000] train_force=0.01586 val_force=0.03596
+[2700/3000] train_force=0.01579 val_force=0.036
+[2800/3000] train_force=0.01576 val_force=0.03599
+[2900/3000] train_force=0.01574 val_force=0.03614
+[3000/3000] train_force=0.01574 val_force=0.03614
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260728-224736__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.07032924890518188, 'mae': 0.04944387450814247, 'r2': 0.9922555685043335}, 'train': {'rmse': 0.06680696457624435, 'mae': 0.04525958374142647, 'r2': 0.9934320449829102}, 'val': {'rmse': 0.07997063547372818, 'mae': 0.06199676916003227, 'r2': 0.9870994091033936}, 'synthetic': {'rmse': 0.08896906673908234, 'mae': 0.05278726667165756, 'r2': 0.9872817397117615}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.0720828122606403, 'best_epoch': 2298, 'best_val_force': 0.03544429689645767}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.0614   0.9961   0.0398    76
+  med   (Rguijiao,E=3.55e6)        0.1798   0.9178   0.1248    76
+  soft  (guijiao,E=4.80e5)         0.0782   0.9579   0.0591    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.1186
+  (Saved Rgui holdout comparison plots)
+Training complete.

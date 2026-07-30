@@ -1,0 +1,26 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 480, in load_dataset
+    return load_new_v73_mat(mat_path)
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 326, in load_new_v73_mat
+    with h5py.File(mat_path, "r") as h5:
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/h5py/_hl/files.py", line 564, in __init__
+    fid = make_fid(name, mode, userblock_size, fapl, fcpl, swmr=swmr)
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/h5py/_hl/files.py", line 238, in make_fid
+    fid = h5f.open(name, flags, fapl=fapl)
+  File "h5py/_objects.pyx", line 56, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 57, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 102, in h5py.h5f.open
+FileNotFoundError: [Errno 2] Unable to synchronously open file (unable to open file: name = 'data/pinn_training_data_synth.mat', errno = 2, error message = 'No such file or directory', flags = 0, o_flags = 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1840, in <module>
+    main()
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1667, in main
+    synthetic = load_dataset(synthetic_path)
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 482, in load_dataset
+    return load_old_scipy_mat(mat_path)
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 410, in load_old_scipy_mat
+    from scipy.io import loadmat
+ModuleNotFoundError: No module named 'scipy'

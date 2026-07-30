@@ -1,0 +1,30 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-204841__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: cpu
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE+θ (n=64). Encoder residual ON (f_physics.detach())
+[0001/800] train_force=0.2352 val_force=0.581
+[0100/800] train_force=0.02746 val_force=0.04462
+[0200/800] train_force=0.0255 val_force=0.04052
+[0300/800] train_force=0.02464 val_force=0.03962
+[0400/800] train_force=0.02439 val_force=0.03947
+[0500/800] train_force=0.02412 val_force=0.0391
+[0600/800] train_force=0.02391 val_force=0.03915
+[0700/800] train_force=0.02371 val_force=0.03886
+[0800/800] train_force=0.02394 val_force=0.03954
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-204841__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.08800502866506577, 'mae': 0.06834543496370316, 'r2': 0.9878735542297363}, 'train': {'rmse': 0.0819246768951416, 'mae': 0.06406676769256592, 'r2': 0.9896381497383118}, 'val': {'rmse': 0.10413730144500732, 'mae': 0.08118139952421188, 'r2': 0.9822375774383545}, 'synthetic': {'rmse': 0.13814041018486023, 'mae': 0.0925610214471817, 'r2': 0.969338595867157}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.029560462522663568, 'best_epoch': 762, 'best_val_force': 0.038262803107500076}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.0743   0.9942   0.0566    76
+  med   (Rguijiao,E=3.55e6)        0.2181   0.8791   0.1433    76
+  soft  (guijiao,E=4.80e5)         0.0998   0.9315   0.0801    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.1450
+Training complete.

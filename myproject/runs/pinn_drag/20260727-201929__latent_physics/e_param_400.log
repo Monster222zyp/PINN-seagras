@@ -1,0 +1,26 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-201937__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: cpu
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE (n=16)
+[0001/400] train_force=0.1731 val_force=0.2132
+[0100/400] train_force=0.01589 val_force=0.04509
+[0200/400] train_force=0.0141 val_force=0.04316
+[0300/400] train_force=0.01393 val_force=0.04215
+[0400/400] train_force=0.01332 val_force=0.04277
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-201937__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.086372509598732, 'mae': 0.0607803575694561, 'r2': 0.9883192777633667}, 'train': {'rmse': 0.08583392202854156, 'mae': 0.05802619084715843, 'r2': 0.9891580939292908}, 'val': {'rmse': 0.08796845376491547, 'mae': 0.0690428614616394, 'r2': 0.9843900203704834}, 'synthetic': {'rmse': 0.11653696745634079, 'mae': 0.07717897742986679, 'r2': 0.978178858757019}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.027829782449101146, 'best_epoch': 61, 'best_val_force': 0.039568088948726654}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.0750   0.9941   0.0553    76
+  med   (Rguijiao,E=3.55e6)        0.2377   0.8564   0.1552    76
+  soft  (guijiao,E=4.80e5)         0.0964   0.9361   0.0662    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.1543
+Training complete.

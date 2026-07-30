@@ -1,0 +1,52 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 2105, in <module>
+    main()
+    ~~~~^^
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 2054, in main
+    plot_training_history(run_dir, history, best_epoch)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1412, in plot_training_history
+    plt.tight_layout()
+    ~~~~~~~~~~~~~~~~^^
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/pyplot.py", line 2992, in tight_layout
+    gcf().tight_layout(pad=pad, h_pad=h_pad, w_pad=w_pad, rect=rect)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/figure.py", line 3665, in tight_layout
+    engine.execute(self)
+    ~~~~~~~~~~~~~~^^^^^^
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/layout_engine.py", line 188, in execute
+    kwargs = get_tight_layout_figure(
+        fig, fig.axes, get_subplotspec_list(fig.axes), renderer,
+        pad=info['pad'], h_pad=info['h_pad'], w_pad=info['w_pad'],
+        rect=info['rect'])
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/_tight_layout.py", line 266, in get_tight_layout_figure
+    kwargs = _auto_adjust_subplotpars(fig, renderer,
+                                      shape=(max_nrows, max_ncols),
+    ...<2 lines>...
+                                      ax_bbox_list=ax_bbox_list,
+                                      pad=pad, h_pad=h_pad, w_pad=w_pad)
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/_tight_layout.py", line 82, in _auto_adjust_subplotpars
+    bb += [martist._get_tightbbox_for_layout_only(ax, renderer)]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/artist.py", line 1485, in _get_tightbbox_for_layout_only
+    return obj.get_tightbbox(*args, **{**kwargs, "for_layout_only": True})
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/axes/_base.py", line 4758, in get_tightbbox
+    ba = martist._get_tightbbox_for_layout_only(axis, renderer)
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/artist.py", line 1485, in _get_tightbbox_for_layout_only
+    return obj.get_tightbbox(*args, **{**kwargs, "for_layout_only": True})
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/axis.py", line 1425, in get_tightbbox
+    ticks_to_draw = self._update_ticks()
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/axis.py", line 1344, in _update_ticks
+    major_locs = self.get_majorticklocs()
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/axis.py", line 1673, in get_majorticklocs
+    return self.major.locator()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/ticker.py", line 2470, in __call__
+    return self.tick_values(vmin, vmax)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/Users/zyp/miniforge3/lib/python3.13/site-packages/matplotlib/ticker.py", line 2492, in tick_values
+    raise ValueError(
+        "Data cannot be log-scaled because all values are <= 0.")
+ValueError: Data cannot be log-scaled because all values are <= 0.

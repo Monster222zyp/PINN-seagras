@@ -1,0 +1,31 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260728-230411__latent_physics
+Data file: data/pinn_training_data.mat
+Synthetic data file: data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: mps
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: mps
+Beam physics enabled: True  (λ_pde=0.1)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE+θ (n=64). Encoder residual ON (f_physics.detach())
+[0001/2000] train_force=nan val_force=nan
+[0100/2000] train_force=nan val_force=nan
+[0200/2000] train_force=nan val_force=nan
+[0300/2000] train_force=nan val_force=nan
+[0400/2000] train_force=nan val_force=nan
+[0500/2000] train_force=nan val_force=nan
+[0600/2000] train_force=nan val_force=nan
+[0700/2000] train_force=nan val_force=nan
+[0800/2000] train_force=nan val_force=nan
+[0900/2000] train_force=nan val_force=nan
+[1000/2000] train_force=nan val_force=nan
+[1100/2000] train_force=nan val_force=nan
+[1200/2000] train_force=nan val_force=nan
+[1300/2000] train_force=nan val_force=nan
+[1400/2000] train_force=nan val_force=nan
+[1500/2000] train_force=nan val_force=nan
+[1600/2000] train_force=nan val_force=nan
+[1700/2000] train_force=nan val_force=nan
+[1800/2000] train_force=nan val_force=nan
+[1900/2000] train_force=nan val_force=nan
+[2000/2000] train_force=nan val_force=nan
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260728-230411__latent_physics/latent_predictions.csv

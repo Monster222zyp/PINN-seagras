@@ -1,0 +1,23 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-201929__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: cpu
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE (n=16)
+[0001/3] train_force=0.1731 val_force=0.2132
+[0003/3] train_force=0.1023 val_force=0.1454
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-201929__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.25443553924560547, 'mae': 0.14233918488025665, 'r2': 0.8986381888389587}, 'train': {'rmse': 0.25834140181541443, 'mae': 0.13646841049194336, 'r2': 0.9017855525016785}, 'val': {'rmse': 0.24234062433242798, 'mae': 0.15995150804519653, 'r2': 0.8815323114395142}, 'synthetic': {'rmse': 0.15402455627918243, 'mae': 0.10818860679864883, 'r2': 0.9618819355964661}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.02034054510295391, 'best_epoch': 3, 'best_val_force': 0.14543414115905762}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.1047   0.9885   0.0793    76
+  med   (Rguijiao,E=3.55e6)        0.3335   0.7174   0.2009    76
+  soft  (guijiao,E=4.80e5)         0.3443   0.1848   0.2053    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.2832
+Training complete.

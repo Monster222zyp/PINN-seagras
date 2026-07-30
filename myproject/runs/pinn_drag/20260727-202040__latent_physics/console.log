@@ -1,0 +1,26 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-202040__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: cpu
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE (n=16)
+[0001/400] train_force=0.2304 val_force=0.5731
+[0100/400] train_force=0.03945 val_force=0.05866
+[0200/400] train_force=0.0337 val_force=0.0554
+[0300/400] train_force=0.02933 val_force=0.05985
+[0400/400] train_force=0.02902 val_force=0.05876
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-202040__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.11814599484205246, 'mae': 0.07894576340913773, 'r2': 0.9781447052955627}, 'train': {'rmse': 0.11914530396461487, 'mae': 0.07444170117378235, 'r2': 0.9791098833084106}, 'val': {'rmse': 0.11509601026773453, 'mae': 0.09245794266462326, 'r2': 0.9732780456542969}, 'synthetic': {'rmse': 0.1979830414056778, 'mae': 0.14134471118450165, 'r2': 0.937019407749176}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.029871779739072447, 'best_epoch': 137, 'best_val_force': 0.053179048001766205}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.0809   0.9931   0.0599    76
+  med   (Rguijiao,E=3.55e6)        0.2127   0.8850   0.1466    76
+  soft  (guijiao,E=4.80e5)         0.1462   0.8530   0.0980    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.1562
+Training complete.

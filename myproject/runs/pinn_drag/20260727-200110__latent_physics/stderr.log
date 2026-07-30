@@ -1,0 +1,36 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1964, in <module>
+    main()
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1921, in main
+    plot_training_history(run_dir, history, best_epoch)
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1290, in plot_training_history
+    plt.tight_layout()
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/pyplot.py", line 2801, in tight_layout
+    gcf().tight_layout(pad=pad, h_pad=h_pad, w_pad=w_pad, rect=rect)
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/figure.py", line 3545, in tight_layout
+    engine.execute(self)
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/layout_engine.py", line 183, in execute
+    kwargs = get_tight_layout_figure(
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/_tight_layout.py", line 266, in get_tight_layout_figure
+    kwargs = _auto_adjust_subplotpars(fig, renderer,
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/_tight_layout.py", line 82, in _auto_adjust_subplotpars
+    bb += [martist._get_tightbbox_for_layout_only(ax, renderer)]
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/artist.py", line 1410, in _get_tightbbox_for_layout_only
+    return obj.get_tightbbox(*args, **{**kwargs, "for_layout_only": True})
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/_api/deprecation.py", line 457, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/axes/_base.py", line 4476, in get_tightbbox
+    ba = martist._get_tightbbox_for_layout_only(axis, renderer)
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/artist.py", line 1410, in _get_tightbbox_for_layout_only
+    return obj.get_tightbbox(*args, **{**kwargs, "for_layout_only": True})
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/axis.py", line 1370, in get_tightbbox
+    ticks_to_draw = self._update_ticks()
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/axis.py", line 1300, in _update_ticks
+    major_locs = self.get_majorticklocs()
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/axis.py", line 1531, in get_majorticklocs
+    return self.major.locator()
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/ticker.py", line 2350, in __call__
+    return self.tick_values(vmin, vmax)
+  File "/Users/zyp/Library/Python/3.9/lib/python/site-packages/matplotlib/ticker.py", line 2367, in tick_values
+    raise ValueError(
+ValueError: Data has no positive values, and therefore cannot be log-scaled.

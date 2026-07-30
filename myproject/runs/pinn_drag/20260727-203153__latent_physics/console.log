@@ -1,0 +1,27 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-203153__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: cpu
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE (n=32)
+[0001/600] train_force=0.2682 val_force=0.6289
+[0100/600] train_force=0.05597 val_force=0.05972
+[0200/600] train_force=0.05164 val_force=0.0551
+[0300/600] train_force=0.05031 val_force=0.05354
+[0400/600] train_force=0.04952 val_force=0.05387
+[0500/600] train_force=0.04889 val_force=0.05651
+[0600/600] train_force=0.04855 val_force=0.05949
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-203153__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.13929618895053864, 'mae': 0.09713124483823776, 'r2': 0.9651734828948975}, 'train': {'rmse': 0.1433071792125702, 'mae': 0.09800386428833008, 'r2': 0.9658070802688599}, 'val': {'rmse': 0.12650249898433685, 'mae': 0.09451334178447723, 'r2': 0.962497889995575}, 'synthetic': {'rmse': 0.2206437587738037, 'mae': 0.16265340149402618, 'r2': 0.9217771291732788}, 'experimental_sample_count': 228, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.0, 'best_epoch': 336, 'best_val_force': 0.05332370102405548}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.0987   0.9898   0.0718    76
+  med   (Rguijiao,E=3.55e6)        0.1854   0.9126   0.1326    76
+  soft  (guijiao,E=4.80e5)         0.1187   0.9031   0.0870    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.1393
+Training complete.

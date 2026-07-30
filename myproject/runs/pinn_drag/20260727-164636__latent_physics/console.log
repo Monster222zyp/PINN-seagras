@@ -1,0 +1,30 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-164636__latent_physics
+Data file: data/pinn_training_data.mat
+Synthetic data file: data/pinn_training_data_synth.mat
+Excluding configs [8, 9, 10, 11]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.150; synthetic samples stay in train only
+Beam physics enabled: False  (λ_pde=0.05)
+[0001/1000] train_force=2.329 val_force=0.9483
+[0100/1000] train_force=0.01891 val_force=0.04072
+[0200/1000] train_force=0.01368 val_force=0.06022
+[0300/1000] train_force=0.007162 val_force=0.0798
+[0400/1000] train_force=0.005128 val_force=0.08461
+[0500/1000] train_force=0.007628 val_force=0.08349
+[0600/1000] train_force=0.004584 val_force=0.08275
+[0700/1000] train_force=0.004433 val_force=0.08295
+[0800/1000] train_force=0.004341 val_force=0.08202
+[0900/1000] train_force=0.004255 val_force=0.08157
+[1000/1000] train_force=0.004187 val_force=0.08158
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-164636__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.08182193338871002, 'mae': 0.06115496903657913, 'r2': 0.9904521107673645}, 'train': {'rmse': 0.08187153935432434, 'mae': 0.06175127625465393, 'r2': 0.9906472563743591}, 'val': {'rmse': 0.08154316991567612, 'mae': 0.057810429483652115, 'r2': 0.9886502027511597}, 'synthetic': {'rmse': 0.10652366280555725, 'mae': 0.06300226598978043, 'r2': 0.9817676544189453}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.02411547185559022, 'best_epoch': 71, 'best_val_force': 0.029042743146419525}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.0845   0.9925   0.0627    76
+  med   (Rguijiao,E=3.55e6)        0.0790   0.9841   0.0596    76
+  soft  (guijiao,E=4.80e5)         0.2384   0.6092   0.1503    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.1530
+Training complete.

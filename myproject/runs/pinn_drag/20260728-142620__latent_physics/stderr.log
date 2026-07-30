@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 2011, in <module>
+    main()
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1837, in main
+    model = LatentPhysicsPINN(
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 820, in __init__
+    nn.init.zero_(self.param_net[-1].weight)
+AttributeError: module 'torch.nn.init' has no attribute 'zero_'

@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1906, in <module>
+    main()
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1814, in main
+    train_log = run_epoch(model, train_loader, optimizer, force_scale, weights, device)
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1159, in run_epoch
+    return {
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1160, in <dictcomp>
+    key: float(sum(logs[key] * batch_size for logs, batch_size in rows) / total_samples)
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1160, in <genexpr>
+    key: float(sum(logs[key] * batch_size for logs, batch_size in rows) / total_samples)
+KeyError: 'e_inv'

@@ -1,8 +1,0 @@
-{
-  "best_experimental_validation_rmse": 1.2487425804138184,
-  "best_checkpoint": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-175503__iterative_self_training/cycle_03_posttrain/model.pt",
-  "final_model": "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260721-175503__iterative_self_training/final_model.pt",
-  "completed_posttrain_cycles": 3,
-  "accepted_posttrain_cycles": 3,
-  "final_pseudo_memory_samples": 36
-}

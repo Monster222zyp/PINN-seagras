@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1840, in <module>
+    main()
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 1674, in main
+    e_interp_data = build_e_interp_data(
+  File "/Users/zyp/Documents/GitHub/PINN-seagras/myproject/train_latent_physics_pinn.py", line 662, in build_e_interp_data
+    logE_gui = np.log(float(data.raw_x[base_idx_g, 3]))
+IndexError: index 171 is out of bounds for axis 0 with size 152

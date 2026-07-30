@@ -1,0 +1,27 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-204129__latent_physics
+Data file: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Excluding configs [4, 5, 6, 7]: keeping 152/228 experimental samples
+Device: cpu
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE (n=64)
+[0001/600] train_force=0.2941 val_force=0.3947
+[0100/600] train_force=0.5981 val_force=0.5956
+[0200/600] train_force=0.2172 val_force=0.559
+[0300/600] train_force=0.2163 val_force=0.5514
+[0400/600] train_force=0.2165 val_force=0.5438
+[0500/600] train_force=0.2162 val_force=0.5451
+[0600/600] train_force=0.2159 val_force=0.5495
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260727-204129__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.4887910783290863, 'mae': 0.3358363211154938, 'r2': 0.6259193420410156}, 'train': {'rmse': 0.5014165043830872, 'mae': 0.34780603647232056, 'r2': 0.6300146579742432}, 'val': {'rmse': 0.44878870248794556, 'mae': 0.29992708563804626, 'r2': 0.5937144756317139}, 'synthetic': {'rmse': 0.4798140823841095, 'mae': 0.31814584136009216, 'r2': 0.630089521408081}, 'experimental_sample_count': 152, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.009450903174614436, 'best_epoch': 1, 'best_val_force': 0.3946557641029358}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.6364   0.5762   0.4833    76
+  med   (Rguijiao,E=3.55e6)        0.2786   0.8028   0.2173    76
+  soft  (guijiao,E=4.80e5)         0.2700   0.4987   0.1884    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.4303
+Training complete.
