@@ -1,0 +1,58 @@
+Run directory: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260804-205019__latent_physics
+Data file: myproject/data/pinn_training_data.mat
+Synthetic data file: myproject/data/pinn_training_data_synth.mat
+Leak-holdout (explicit velocities): keeping 8 samples of excluded configs (velocities=[17, 18]) IN training set
+Excluding configs [4, 5, 6, 7]: keeping 160/228 experimental samples
+Device: mps
+Split: experimental random shuffle with val_ratio=0.250; synthetic samples stay in train only
+Device: mps
+Beam physics enabled: True  (λ_pde=0.05)
+E-param embedding enabled: base Cd/shield/col_corr from smooth logE+θ (n=64). Encoder residual ON (f_physics.detach())
+[0001/2000] train_force=0.2856 val_force=0.2725
+[0100/2000] train_force=0.02183 val_force=0.05026
+[0200/2000] train_force=0.02016 val_force=0.04075
+[0300/2000] train_force=0.01906 val_force=0.042
+[0400/2000] train_force=0.0183 val_force=0.04055
+[0500/2000] train_force=0.01804 val_force=0.04091
+[0600/2000] train_force=0.01781 val_force=0.04096
+[0700/2000] train_force=0.01752 val_force=0.04009
+[0800/2000] train_force=0.01725 val_force=0.03967
+[0900/2000] train_force=0.01694 val_force=0.03947
+[1000/2000] train_force=0.01677 val_force=0.03965
+[1100/2000] train_force=0.01648 val_force=0.03953
+[1200/2000] train_force=0.01618 val_force=0.03823
+[1300/2000] train_force=0.01609 val_force=0.038
+[1400/2000] train_force=0.01589 val_force=0.03873
+[1500/2000] train_force=0.01579 val_force=0.03886
+[1600/2000] train_force=0.01572 val_force=0.03924
+[1700/2000] train_force=0.01529 val_force=0.03813
+[1800/2000] train_force=0.01518 val_force=0.03516
+[1900/2000] train_force=0.01516 val_force=0.03624
+[2000/2000] train_force=0.01507 val_force=0.0387
+Saved latent CSV: /Users/zyp/Documents/GitHub/PINN-seagras/myproject/runs/pinn_drag/20260804-205019__latent_physics/latent_predictions.csv
+Metrics: {'all': {'rmse': 0.06688222289085388, 'mae': 0.04827733710408211, 'r2': 0.9931337833404541}, 'train': {'rmse': 0.06356381624937057, 'mae': 0.044956404715776443, 'r2': 0.9939166903495789}, 'val': {'rmse': 0.07597269117832184, 'mae': 0.0582401268184185, 'r2': 0.9903602004051208}, 'synthetic': {'rmse': 0.0844641849398613, 'mae': 0.053226422518491745, 'r2': 0.988537073135376}, 'experimental_sample_count': 160, 'synthetic_sample_count': 80, 'mean_residual_ratio': 0.10820170766428898, 'best_epoch': 1983, 'best_val_force': 0.0339190810918808}
+
+Per-material breakdown (all 228 experimental samples):
+  Group                              RMSE       R2      MAE     n
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  hard  (PVC,     E=1.25e7)        0.0686   0.9951   0.0475    76
+  med   (Rguijiao,E=3.55e6)        0.1188   0.9641   0.0861    76
+  soft  (guijiao,E=4.80e5)         0.0663   0.9698   0.0499    76
+  ────────────────────────────── ──────── ──────── ──────── ─────
+  Weighted RMSE                    0.0880
+
+Per-config breakdown (Rguijiao configs 5-8, 1-indexed):
+  Config                   RMSE       R2      MAE     n
+  ──────────────────── ──────── ──────── ──────── ─────
+  Rguijiao_20_0          0.1753   0.9364   0.1295    19
+  Rguijiao_20_180        0.1153   0.9759   0.0945    19
+  Rguijiao_10_0          0.0857   0.9496   0.0576    19
+  Rguijiao_10_180        0.0711   0.9740   0.0629    19
+
+Honest holdout split (excluded material only):
+  Subset                       RMSE       R2      MAE     n
+  ──────────────────────── ──────── ──────── ──────── ─────
+  LEAKED anchors             0.0545   0.9856   0.0404     8
+  TRUE holdout (unseen)      0.1242   0.9508   0.0915    68
+  (Saved Rgui holdout comparison plots)
+Training complete.
